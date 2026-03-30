@@ -231,21 +231,32 @@ function App() {
               Siga os passos abaixo na sua recepção para ativar a impressão física:
             </p>
 
-            <div className="setup-step" style={{ padding: '15px', background: 'rgba(173, 255, 47, 0.05)', borderRadius: '12px', border: '1px solid rgba(173, 255, 47, 0.2)' }}>
-              <h3 style={{ color: '#adff2f' }}>🚀 MODO RECOMENDADO: QueueMaster GUI</h3>
-              <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Use a interface visual para configurar sua impressora sem códigos:</p>
-              <div className="code-block" style={{ background: '#111' }}>
-                <span>python3 gui_app.py</span>
-                <button className="copy-btn" onClick={() => copyToClipboard("python3 gui_app.py")}>Copiar</button>
+            <div className="setup-step" style={{ padding: '20px', background: 'rgba(173, 255, 47, 0.08)', borderRadius: '16px', border: '1px solid var(--neon-green)', boxShadow: '0 0 20px rgba(173, 255, 47, 0.1)' }}>
+              <h3 style={{ color: '#adff2f', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                🚀 RECOMENDADO: INSTALADOR VISUAL
+              </h3>
+              <p style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '20px' }}>
+                Baixe o aplicativo para gerenciar sua impressora com um clique:
+              </p>
+              
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <a href="/downloads/QueueMaster_PrintNode_Win.exe" download className="neon-btn btn-green" style={{ textDecoration: 'none', fontSize: '0.75rem', padding: '10px 20px' }}>
+                  📥 BAIXAR PARA WINDOWS (.exe)
+                </a>
+                <a href="/downloads/QueueMaster_PrintNode_Linux" download className="neon-btn btn-cyan" style={{ textDecoration: 'none', fontSize: '0.75rem', padding: '10px 20px' }}>
+                  📥 BAIXAR PARA LINUX (Binary)
+                </a>
               </div>
-              <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>* Procure o ícone verde na sua barra de tarefas após rodar.</p>
+              <p style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '15px' }}>
+                * Após baixar, execute o arquivo e procure o ícone verde na sua barra de tarefas.
+              </p>
             </div>
 
-            <div className="setup-step" style={{ marginTop: '20px' }}>
-              <h3>🔧 Modo Avançado (Somente via Terminal)</h3>
-              <div className="code-block">
-                <span>Linux: sudo apt update && sudo apt install -y python3-venv python3-pip && cd ~/Desktop/"Painel de Senhas"/print_node && ./setup_print_node.sh</span>
-                <button className="copy-btn" onClick={() => copyToClipboard('sudo apt update && sudo apt install -y python3-venv python3-pip && cd ~/Desktop/"Painel de Senhas"/print_node && ./setup_print_node.sh')}>Copiar</button>
+            <div className="setup-step" style={{ marginTop: '25px', opacity: 0.6 }}>
+              <h3 style={{ fontSize: '0.8rem' }}>🔧 Desenvolvedor / Terminal</h3>
+              <div className="code-block" style={{ fontSize: '0.75rem' }}>
+                <span>python3 gui_app.py</span>
+                <button className="copy-btn" onClick={() => copyToClipboard("python3 gui_app.py")}>Copiar</button>
               </div>
             </div>
 

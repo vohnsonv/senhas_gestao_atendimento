@@ -26,11 +26,17 @@ function App() {
 
   const [lastTicket, setLastTicket] = useState(null)
   const [printerOnline, setPrinterOnline] = useState(false)
+  const [showSetup, setShowSetup] = useState(false)
 
   // Sync to LocalStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }, [data])
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+    alert("Comando copiado!")
+  }
 
   // Check Print Node Status
   const checkPrinter = async () => {
@@ -134,8 +140,15 @@ function App() {
           <h1 className="hero-title">QueueMaster Pro 🚀</h1>
           <p style={{ opacity: 0.5, marginBottom: '20px' }}>Terminal de Autoatendimento Web (Serverless)</p>
         </div>
-        <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`}>
-          {printerOnline ? '● Impressora Conectada' : '○ Impressora Offline'}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {!printerOnline && (
+            <button className="btn-setup" onClick={() => setShowSetup(true)}>
+              ⚙️ CONFIGURAR IMPRESSORA
+            </button>
+          )}
+          <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`}>
+            {printerOnline ? '● Impressora Conectada' : '○ Impressora Offline'}
+          </div>
         </div>
       </header>
 
@@ -207,6 +220,45 @@ function App() {
           )}
         </div>
       </section>
+
+      {showSetup && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="modal-close" onClick={() => setShowSetup(false)}>×</button>
+            <h2 style={{ color: '#fff', marginBottom: '20px' }}>Configuração da Impressora 🖨️</h2>
+            <p style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '30px' }}>
+              Por segurança, o navegador não pode instalar programas sozinho. 
+              Siga os passos abaixo na sua recepção para ativar a impressão física:
+            </p>
+
+            <div className="setup-step">
+              <h3>1. Instalador Automático (Recomendado)</h3>
+              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Abra a pasta do projeto e execute o arquivo de instalador:</p>
+              <div className="code-block">
+                <span>Windows: setup_print_node.bat</span>
+                <button className="copy-btn" onClick={() => copyToClipboard("setup_print_node.bat")}>Copiar</button>
+              </div>
+              <div className="code-block" style={{ marginTop: '8px' }}>
+                <span>Linux: ./setup_print_node.sh</span>
+                <button className="copy-btn" onClick={() => copyToClipboard("./setup_print_node.sh")}>Copiar</button>
+              </div>
+            </div>
+
+            <div className="setup-step">
+              <h3>2. Iniciar Motor de Impressão</h3>
+              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Após instalar, rode o servidor para conectar o site à impressora:</p>
+              <div className="code-block">
+                <span>python print_server.py</span>
+                <button className="copy-btn" onClick={() => copyToClipboard("python print_server.py")}>Copiar</button>
+              </div>
+            </div>
+
+            <button className="neon-btn btn-cyan" style={{ width: '100%', marginTop: '20px' }} onClick={() => setShowSetup(false)}>
+              ENTENDI, VOU CONFIGURAR
+            </button>
+          </div>
+        </div>
+      )}
 
       <footer className="status-bar">
         DATA: {data.date} • UNIDADE LOCAL BROWSER • V1.5 PRO (WITH PRINT NODE)

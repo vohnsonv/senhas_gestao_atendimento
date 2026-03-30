@@ -38,10 +38,10 @@ O projeto é dividido em duas partes essenciais:
     ```
 3.  **Instale os requisitos:**
     -   No Windows: `setup_print_node.bat`
-    -   No Linux: `chmod +x setup_print_node.sh && ./setup_print_node.sh`
+    -   No Linux: `sudo apt update && sudo apt install -y python3-venv python3-pip && chmod +x setup_print_node.sh && ./setup_print_node.sh`
 4.  **Inicie o servidor de impressão:**
     ```bash
-    python print_server.py
+    python3 print_server.py
     ```
 5.  O site em `localhost:3000` mostrará o status **"Impressora Conectada"** automaticamente!
 

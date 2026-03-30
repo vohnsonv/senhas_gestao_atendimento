@@ -53,6 +53,20 @@ npm run dev
 
 ---
 
+## 🌐 Deploy em VPS (Docker)
+
+Para hospedar o sistema no seu subdomínio `senhas.labsync.com.br`:
+
+1.  **Configuração de DNS:** No seu gerenciador de domínio, aponte um **Registro A** de `senhas` para o IP `46.62.150.120`.
+2.  **Preparar VPS:** Garanta que o Docker e Docker Compose estejam instalados na sua VPS.
+3.  **Subir o Container:** Na pasta do projeto na VPS, execute:
+    ```bash
+    docker-compose up -d --build
+    ```
+O sistema estará disponível em `http://senhas.labsync.com.br`.
+
+---
+
 ## 📂 Estrutura de Pastas
 
 ```bash

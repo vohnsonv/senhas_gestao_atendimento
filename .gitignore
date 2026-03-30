@@ -1,15 +1,16 @@
-venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.db
-senhas.db
-.env
-build/
-dist/
-*.spec
+# Backend
+backend/__pycache__/
+backend/*.pyc
+backend/senhas.db
+backend/.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.DS_Store
+
+# General
 .vscode/
 .idea/
 *.log
-contador.txt
+venv/

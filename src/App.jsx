@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './App.css'
 
-const STORAGE_KEY = 'queuemaster_v1_data'
+const STORAGE_KEY = 'atende_org_data_v2'
 const PRINT_NODE_URL = 'http://localhost:5000'
 
 function App() {
@@ -12,8 +12,9 @@ function App() {
       common: 1,
       priority: 1,
       waiting: [],
-      called: [],
-      p_streak: 0
+      history: [],
+      p_streak: 0,
+      priorityMode: 'balanced' // 'balanced' or 'priority_only'
     }
     
     if (saved) {
@@ -24,26 +25,57 @@ function App() {
     return initial
   })
 
+  const [activeCall, setActiveCall] = useState(null)
+  const [timerSeconds, setTimerSeconds] = useState(0)
   const [lastTicket, setLastTicket] = useState(null)
   const [printerOnline, setPrinterOnline] = useState(false)
   const [showSetup, setShowSetup] = useState(false)
+  const timerRef = useRef(null)
 
   // Sync to LocalStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }, [data])
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-    alert("Comando copiado!")
+  // Timer Logic
+  useEffect(() => {
+    if (activeCall) {
+      timerRef.current = setInterval(() => {
+        setTimerSeconds(prev => prev + 1)
+      }, 1000)
+    } else {
+      clearInterval(timerRef.current)
+    }
+    return () => clearInterval(timerRef.current)
+  }, [activeCall])
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeys = (e) => {
+      if (e.code === 'Space') {
+         e.preventDefault()
+         callNext()
+      }
+    }
+    window.addEventListener('keydown', handleKeys)
+    return () => window.removeEventListener('keydown', handleKeys)
+  }, [data]) // Re-bind when data changes to have fresh state in closure
+
+  const formatTime = (s) => {
+    const mins = Math.floor(s / 60)
+    const secs = s % 60
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
   }
 
-  // Check Print Node Status
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+    alert("Copiado!")
+  }
+
   const checkPrinter = async () => {
     try {
       const res = await fetch(`${PRINT_NODE_URL}/status`)
-      if (res.ok) setPrinterOnline(true)
-      else setPrinterOnline(false)
+      setPrinterOnline(res.ok)
     } catch {
       setPrinterOnline(false)
     }
@@ -55,20 +87,7 @@ function App() {
     return () => clearInterval(interval)
   }, [])
 
-  const printTicket = async (senha, tipo) => {
-    if (!printerOnline) return
-    try {
-      await fetch(`${PRINT_NODE_URL}/print`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senha, tipo, lab: "UNIDADE TORITAMA" })
-      })
-    } catch (err) {
-      console.error("Falha ao imprimir:", err)
-    }
-  }
-
-  const emitTicket = (tipo) => {
+  const emitTicket = async (tipo) => {
     const numero = tipo === 'C' ? data.common : data.priority
     const senha = `${tipo}${String(numero).padStart(3, '0')}`
     
@@ -76,7 +95,8 @@ function App() {
       id: Date.now(),
       senha,
       tipo,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      emitTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      timestamp: Date.now()
     }
 
     setData(prev => ({
@@ -86,8 +106,19 @@ function App() {
     }))
 
     setLastTicket(senha)
-    printTicket(senha, tipo) // Solicita impressão local
-    setTimeout(() => setLastTicket(null), 8000)
+    
+    // Impressão
+    if (printerOnline) {
+      try {
+        await fetch(`${PRINT_NODE_URL}/print`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senha, tipo, lab: "ATENDE.ORG - RECEPÇÃO" })
+        })
+      } catch (err) { console.error(err) }
+    }
+
+    setTimeout(() => setLastTicket(null), 5000)
   }
 
   const callNext = () => {
@@ -96,179 +127,195 @@ function App() {
       return
     }
 
+    // Finalizar atendimento atual se houver
+    const endTimestamp = Date.now()
+    if (activeCall) {
+       const finishedItem = {
+         ...activeCall,
+         endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+         duration: formatTime(timerSeconds)
+       }
+       setData(prev => ({
+         ...prev,
+         history: [finishedItem, ...prev.history].slice(0, 50)
+       }))
+    }
+
+    // Lógica de Prioridade
     let nextIndex = -1
     let newStreak = data.p_streak
 
-    if (newStreak >= 2) {
-      nextIndex = data.waiting.findIndex(item => item.tipo === 'C')
-      if (nextIndex !== -1) newStreak = 0
-    }
-
-    if (nextIndex === -1) {
-      nextIndex = data.waiting.findIndex(item => item.tipo === 'P')
-      if (nextIndex !== -1) newStreak += 1
-      else {
-        nextIndex = data.waiting.findIndex(item => item.tipo === 'C')
-        newStreak = 0
-      }
+    if (data.priorityMode === 'priority_only') {
+       nextIndex = data.waiting.findIndex(item => item.tipo === 'P')
+    } else {
+       if (newStreak >= 2) {
+         nextIndex = data.waiting.findIndex(item => item.tipo === 'C')
+         if (nextIndex !== -1) newStreak = 0
+       }
+       if (nextIndex === -1) {
+         nextIndex = data.waiting.findIndex(item => item.tipo === 'P')
+         if (nextIndex !== -1) newStreak += 1
+         else {
+           nextIndex = data.waiting.findIndex(item => item.tipo === 'C')
+           newStreak = 0
+         }
+       }
     }
 
     if (nextIndex === -1) nextIndex = 0
 
     const nextItem = data.waiting[nextIndex]
     const newWaiting = data.waiting.filter((_, i) => i !== nextIndex)
-    const newCalled = [nextItem, ...data.called].slice(0, 5)
 
     setData(prev => ({
       ...prev,
       waiting: newWaiting,
-      called: newCalled,
       p_streak: newStreak
     }))
-    
-    // Play sound or alert
-    const msg = new SpeechSynthesisUtterance(`Senha ${nextItem.senha}, favor comparecer ao guichê.`);
+
+    setActiveCall({ ...nextItem, startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) })
+    setTimerSeconds(0)
+
+    // Som Chime Profissional
+    const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    chime.play().catch(e => console.log("Erro ao tocar som:", e));
+
+    // Voz em Português
+    const msg = new SpeechSynthesisUtterance(`Senha ${nextItem.senha}, favor comparecer.`);
+    msg.lang = 'pt-BR';
+    const voices = window.speechSynthesis.getVoices();
+    const ptVoice = voices.find(v => v.lang.includes('pt-BR')) || voices[0];
+    if (ptVoice) msg.voice = ptVoice;
     window.speechSynthesis.speak(msg);
   }
 
-  const avgWait = (data.waiting.length + 1) * 5
+  const toggleMode = () => {
+    setData(prev => ({ ...prev, priorityMode: prev.priorityMode === 'balanced' ? 'priority_only' : 'balanced' }))
+  }
 
   return (
     <div className="app-container">
-      <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <div>
-          <h1 className="hero-title">QueueMaster Pro 🚀</h1>
-          <p style={{ opacity: 0.5, marginBottom: '20px' }}>Terminal de Autoatendimento Web (Serverless)</p>
+          <h1 className="hero-title">ATENDE.ORG ✨</h1>
+          <p style={{ opacity: 0.6, fontSize: '0.9rem' }}>Gestão de Acolhimento e Fluxo de Pacientes</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          {!printerOnline && (
-            <button className="btn-setup" onClick={() => setShowSetup(true)}>
-              ⚙️ CONFIGURAR IMPRESSORA
-            </button>
-          )}
-          <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`}>
-            {printerOnline ? '● Impressora Conectada' : '○ Impressora Offline'}
+        
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`} onClick={() => setShowSetup(true)} style={{ cursor: 'pointer' }}>
+            {printerOnline ? '● IMPRESSORA ONLINE' : '○ IMPRESSORA OFFLINE'}
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 15px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid rgba(255,255,255,0.1)' }}>
+            MODO: {data.priorityMode === 'balanced' ? '⚖️ INTERCALADO' : '🔥 PRIORIDADE MÁXIMA'}
           </div>
         </div>
       </header>
 
-      <section className="terminal-section">
-        <div className="glass-card">
-          <h2>EMISSÃO DE SENHA</h2>
-          <p style={{ marginBottom: '24px', opacity: 0.7 }}>Toque no tipo de atendimento desejado:</p>
-          
+      <main className="terminal-section">
+        <div className="glass-card" style={{ marginBottom: '30px' }}>
+          <h2>EMISSÃO DE TICKETS</h2>
           <div className="btn-container">
-            <button className="neon-btn btn-cyan" onClick={() => emitTicket('C')}>
-              <span>Atendimento Comum</span>
-              <span style={{ fontSize: '1.2rem' }}>💬</span>
+            <button className="neon-btn btn-emerald" onClick={() => emitTicket('C')}>
+              <span style={{ fontSize: '1.5rem' }}>🎫</span>
+              <span>COMUM</span>
             </button>
-            <button className="neon-btn btn-pink" onClick={() => emitTicket('P')}>
-              <span>Preferencial</span>
-              <span style={{ fontSize: '1.2rem' }}>★</span>
+            <button className="neon-btn btn-lime" onClick={() => emitTicket('P')}>
+              <span style={{ fontSize: '1.5rem' }}>💎</span>
+              <span>PREFERENCIAL</span>
             </button>
           </div>
-
           {lastTicket && (
-            <div style={{ marginTop: '30px', textAlign: 'center', animation: 'fadeIn 0.5s' }}>
-              <p style={{ fontSize: '0.9rem', color: '#888' }}>Sua Senha:</p>
-              <h3 style={{ fontSize: '3.5rem', color: '#adff2f', textShadow: '0 0 20px rgba(173, 255, 47, 0.3)' }}>{lastTicket}</h3>
-              {!printerOnline && <p style={{ color: '#ff4444', fontSize: '0.8rem', marginTop: '10px' }}>Aviso: Impressora Offline. Verifique o Print Node.</p>}
+            <div style={{ position: 'absolute', top: '20px', right: '40px', textAlign: 'center' }}>
+               <p style={{ fontSize: '0.6rem', opacity: 0.5 }}>ÚLTIMO EMITIDO</p>
+               <p style={{ color: 'var(--neon-green)', fontWeight: '900', fontSize: '1.5rem' }}>{lastTicket}</p>
             </div>
           )}
         </div>
 
-        <div className="glass-card" style={{ marginTop: '40px', border: '1px solid rgba(173, 255, 47, 0.2)' }}>
-          <h2 style={{ color: '#adff2f', fontSize: '1rem' }}>GUICHÊ OPERACIONAL</h2>
-          <button className="neon-btn btn-green" style={{ width: '100%', marginTop: '16px' }} onClick={callNext}>
-            PRÓXIMO CLIENTE 🔊
-          </button>
-        </div>
-      </section>
-
-      <section className="queue-section">
-        <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2>PAINEL DE SENHAS</h2>
-            <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: '0.7rem', color: '#666' }}>ESPERA ESTIMADA</p>
-              <p style={{ color: '#ffa500', fontWeight: '800' }}>~{avgWait} min</p>
-            </div>
+        <div className="glass-card" style={{ border: '2px solid var(--soft-emerald)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+             <h2>PAINEL DO ATENDENTE</h2>
+             {activeCall && <div className="active-timer">{formatTime(timerSeconds)}</div>}
           </div>
-
-          <div style={{ marginTop: '30px' }}>
-            {data.waiting.length > 0 ? (
-              data.waiting.map(item => (
-                <div key={item.id} className="queue-item">
-                  <span className={`senha-badge type-${item.tipo}`}>{item.senha}</span>
-                  <span style={{ opacity: 0.5, fontSize: '0.9rem' }}>{item.time}</span>
-                </div>
-              ))
-            ) : (
-              <p style={{ opacity: 0.3, textAlign: 'center', padding: '60px 0' }}>Não há senhas aguardando.</p>
-            )}
-          </div>
-
-          {data.called.length > 0 && (
-            <div className="called-list">
-              <h3 style={{ fontSize: '0.8rem', marginBottom: '16px', color: '#555' }}>ÚLTIMOS CHAMADOS</h3>
-              {data.called.map((item, i) => (
-                <div key={i} className="called-item">
-                  <span>{item.senha}</span>
-                </div>
-              ))}
+          
+          {activeCall ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>EM ATENDIMENTO AGORA</p>
+              <h3 style={{ fontSize: '5rem', color: 'var(--accent-lime)', textShadow: '0 0 30px rgba(163, 230, 53, 0.4)' }}>{activeCall.senha}</h3>
+              <p style={{ opacity: 0.7, marginTop: '10px' }}>Iniciado às {activeCall.startTime}</p>
             </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px', opacity: 0.3 }}>Aguardando próxima chamada...</div>
           )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+             <button className="neon-btn btn-emerald" style={{ width: '100%', flex: 2 }} onClick={callNext}>
+               CHAMAR PRÓXIMO (Espaço) 🔊
+             </button>
+             <button className="neon-btn" style={{ background: 'rgba(255,255,255,0.05)', color: '#fff' }} onClick={toggleMode}>
+               {data.priorityMode === 'balanced' ? 'Ativar Prioridade' : 'Ativar Intercalado'}
+             </button>
+          </div>
         </div>
-      </section>
+      </main>
+
+      <aside className="queue-section">
+        <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+           <h2>FILA DE ESPERA ({data.waiting.length})</h2>
+           <div style={{ flex: 1, overflowY: 'auto', marginBottom: '30px' }}>
+              {data.waiting.length > 0 ? data.waiting.map(item => (
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span style={{ fontWeight: '800', color: item.tipo === 'P' ? 'var(--accent-lime)' : 'var(--neon-green)' }}>{item.senha}</span>
+                  <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>{item.emitTime}</span>
+                </div>
+              )) : <p style={{ opacity: 0.2, textAlign: 'center', marginTop: '50px' }}>Vazio</p>}
+           </div>
+
+           <h2 style={{ paddingTop: '20px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>HISTÓRICO DE HOJE</h2>
+           <div style={{ flex: 1, overflowY: 'auto' }}>
+              <table className="attendance-table">
+                <thead>
+                  <tr>
+                    <th>SENHA</th>
+                    <th>INÍCIO</th>
+                    <th>FIM</th>
+                    <th>DURAÇÃO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.history.map((row, i) => (
+                    <tr key={i}>
+                      <td><span className={`status-badge ${row.tipo === 'P' ? 'status-priority' : 'status-common'}`}>{row.senha}</span></td>
+                      <td style={{ fontSize: '0.75rem', opacity: 0.7 }}>{row.startTime}</td>
+                      <td style={{ fontSize: '0.75rem', opacity: 0.7 }}>{row.endTime}</td>
+                      <td style={{ fontWeight: '700', color: 'var(--soft-emerald)' }}>{row.duration}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+           </div>
+        </div>
+      </aside>
 
       {showSetup && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="modal-close" onClick={() => setShowSetup(false)}>×</button>
-            <h2 style={{ color: '#fff', marginBottom: '20px' }}>Configuração da Impressora 🖨️</h2>
-            <p style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '30px' }}>
-              Por segurança, o navegador não pode instalar programas sozinho. 
-              Siga os passos abaixo na sua recepção para ativar a impressão física:
-            </p>
-
-            <div className="setup-step" style={{ padding: '20px', background: 'rgba(173, 255, 47, 0.08)', borderRadius: '16px', border: '1px solid var(--neon-green)', boxShadow: '0 0 20px rgba(173, 255, 47, 0.1)' }}>
-              <h3 style={{ color: '#adff2f', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                🚀 RECOMENDADO: INSTALADOR VISUAL
-              </h3>
-              <p style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '20px' }}>
-                Baixe o aplicativo para gerenciar sua impressora com um clique:
-              </p>
-              
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <a href="/downloads/QueueMaster_PrintNode_Win.exe" download className="neon-btn btn-green" style={{ textDecoration: 'none', fontSize: '0.75rem', padding: '10px 20px' }}>
-                  📥 BAIXAR PARA WINDOWS (.exe)
-                </a>
-                <a href="/downloads/QueueMaster_PrintNode_Linux.zip" download className="neon-btn btn-cyan" style={{ textDecoration: 'none', fontSize: '0.75rem', padding: '10px 20px' }}>
-                  📥 BAIXAR PARA LINUX (.zip)
+        <div className="modal-overlay" onClick={() => setShowSetup(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2 style={{ color: '#fff', marginBottom: '20px' }}>Atende.org Print Node 🖨️</h2>
+            <div className="setup-step" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px' }}>
+              <h3 style={{ color: 'var(--neon-green)' }}>📥 Baixar Instalador</h3>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                <a href="/downloads/QueueMaster_PrintNode_Linux.zip" download className="neon-btn btn-emerald" style={{ textDecoration: 'none', fontSize: '0.8rem' }}>
+                  LINUX (.zip)
                 </a>
               </div>
-              <p style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '15px' }}>
-                * Após baixar, execute o arquivo e procure o ícone verde na sua barra de tarefas.
-              </p>
             </div>
-
-            <div className="setup-step" style={{ marginTop: '25px', opacity: 0.6 }}>
-              <h3 style={{ fontSize: '0.8rem' }}>🔧 Desenvolvedor / Terminal</h3>
-              <div className="code-block" style={{ fontSize: '0.75rem' }}>
-                <span>python3 gui_app.py</span>
-                <button className="copy-btn" onClick={() => copyToClipboard("python3 gui_app.py")}>Copiar</button>
-              </div>
-            </div>
-
-            <button className="neon-btn btn-cyan" style={{ width: '100%', marginTop: '20px' }} onClick={() => setShowSetup(false)}>
-              ENTENDI, VOU CONFIGURAR
-            </button>
+            <button className="neon-btn" onClick={() => setShowSetup(false)} style={{ marginTop: '20px', width: '100%', background: '#111', color: '#fff' }}>FECHAR</button>
           </div>
         </div>
       )}
 
-      <footer className="status-bar">
-        DATA: {data.date} • UNIDADE LOCAL BROWSER • V1.5 PRO (WITH PRINT NODE)
+      <footer className="status-bar" style={{ gridColumn: '1/-1', textAlign: 'center', opacity: 0.4, padding: '20px', fontSize: '0.8rem' }}>
+        ATENDE.ORG • SISTEMA DE GESTÃO DE FLUXO • {data.date} • ÚNICO GUICHÊ
       </footer>
     </div>
   )

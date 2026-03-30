@@ -243,8 +243,8 @@ function App() {
                 <a href="/downloads/QueueMaster_PrintNode_Win.exe" download className="neon-btn btn-green" style={{ textDecoration: 'none', fontSize: '0.75rem', padding: '10px 20px' }}>
                   📥 BAIXAR PARA WINDOWS (.exe)
                 </a>
-                <a href="/downloads/QueueMaster_PrintNode_Linux" download className="neon-btn btn-cyan" style={{ textDecoration: 'none', fontSize: '0.75rem', padding: '10px 20px' }}>
-                  📥 BAIXAR PARA LINUX (Binary)
+                <a href="/downloads/QueueMaster_PrintNode_Linux.zip" download className="neon-btn btn-cyan" style={{ textDecoration: 'none', fontSize: '0.75rem', padding: '10px 20px' }}>
+                  📥 BAIXAR PARA LINUX (.zip)
                 </a>
               </div>
               <p style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '15px' }}>

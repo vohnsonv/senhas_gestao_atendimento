@@ -29,15 +29,21 @@ O projeto é dividido em duas partes essenciais:
 
 ## 🚀 Como Configurar e Rodar
 
-### 1. Preparar o Print Node (Servidor de Impressão)
-Entre na pasta `print_node` e execute o script de instalação automática:
--   **Windows:** Clique duas vezes em `setup_print_node.bat`
--   **Linux:** Execute `bash setup_print_node.sh`
+### 🖨️ Como configurar a Impressora (Local)
 
-Depois, inicie o servidor:
-```bash
-python print_server.py
-```
+1.  Abra seu terminal.
+2.  **Entre na pasta de impressão:**
+    ```bash
+    cd "Painel de Senhas/print_node"
+    ```
+3.  **Instale os requisitos:**
+    -   No Windows: `setup_print_node.bat`
+    -   No Linux: `chmod +x setup_print_node.sh && ./setup_print_node.sh`
+4.  **Inicie o servidor de impressão:**
+    ```bash
+    python print_server.py
+    ```
+5.  O site em `localhost:3000` mostrará o status **"Impressora Conectada"** automaticamente!
 
 ### 2. Iniciar a Aplicação Web
 Na raiz do projeto:

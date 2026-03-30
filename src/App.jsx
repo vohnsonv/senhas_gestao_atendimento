@@ -233,20 +233,20 @@ function App() {
 
             <div className="setup-step">
               <h3>1. Instalador Automático (Recomendado)</h3>
-              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Abra a pasta do projeto e execute o arquivo de instalador:</p>
+              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Abra seu terminal e cole os comandos abaixo:</p>
               <div className="code-block">
-                <span>Windows: setup_print_node.bat</span>
-                <button className="copy-btn" onClick={() => copyToClipboard("setup_print_node.bat")}>Copiar</button>
+                <span>Windows: cd "Painel de Senhas/print_node" && setup_print_node.bat</span>
+                <button className="copy-btn" onClick={() => copyToClipboard('cd "Painel de Senhas/print_node" && setup_print_node.bat')}>Copiar</button>
               </div>
               <div className="code-block" style={{ marginTop: '8px' }}>
-                <span>Linux: ./setup_print_node.sh</span>
-                <button className="copy-btn" onClick={() => copyToClipboard("./setup_print_node.sh")}>Copiar</button>
+                <span>Linux: cd "Painel de Senhas/print_node" && chmod +x setup_print_node.sh && ./setup_print_node.sh</span>
+                <button className="copy-btn" onClick={() => copyToClipboard('cd "Painel de Senhas/print_node" && chmod +x setup_print_node.sh && ./setup_print_node.sh')}>Copiar</button>
               </div>
             </div>
 
             <div className="setup-step">
               <h3>2. Iniciar Motor de Impressão</h3>
-              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Após instalar, rode o servidor para conectar o site à impressora:</p>
+              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Após instalar, inicie o servidor:</p>
               <div className="code-block">
                 <span>python print_server.py</span>
                 <button className="copy-btn" onClick={() => copyToClipboard("python print_server.py")}>Copiar</button>

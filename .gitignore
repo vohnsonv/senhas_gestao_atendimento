@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.db
+senhas.db
+.env
+build/
+dist/
+*.spec
+.vscode/
+.idea/
+*.log
+contador.txt

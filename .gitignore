@@ -1,16 +1,8 @@
-# Backend
-backend/__pycache__/
-backend/*.pyc
-backend/senhas.db
-backend/.env
-
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.DS_Store
-
-# General
+node_modules/
+dist/
+.DS_Store
 .vscode/
 .idea/
 *.log
 venv/
+__pycache__/

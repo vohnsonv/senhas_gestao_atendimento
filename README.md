@@ -1,71 +1,71 @@
-# 🌐 QueueMaster Web - Sistema de Gestão de Senhas 🚀
+# 🚀 QueueMaster Pro - Sistema de Senhas Serverless 🌐
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React/Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Status](https://img.shields.io/badge/Status-Web--Ready-brightgreen.svg)]()
+[![Storage](https://img.shields.io/badge/Storage-LocalStorage-orange?logo=google-chrome&logoColor=white)]()
+[![Status](https://img.shields.io/badge/Status-Ready-brightgreen.svg)]()
 
-A transformação digital do QueueMaster Terminal para uma aplicação web moderna, responsiva e com um design **Premium Dark/Neon**.
+Um sistema de gestão de senhas profissional, elegante e **100% independente**, que roda inteiramente no seu navegador usando **LocalStorage**. Sem necessidade de backend ou banco de dados externo!
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+## 🌟 Diferenciais
 
-O projeto foi reestruturado para ser leve, organizado e escalável:
+-   💎 **Design Premium:** Estética Dark/Neon com Glassmorphism e tipografia moderna (Inter).
+-   💾 **Persistência Local:** Seus dados (fila, contadores e histórico) são salvos no navegador. Atualize a página sem medo!
+-   ⚖️ **Inteligência de Fila:** Regra de intercalação 2:1 (2 Preferenciais para cada 1 Comum) integrada.
+-   📅 **Reset Diário:** Os contadores resetam automaticamente no primeiro acesso de cada novo dia.
+-   🚀 **Zero Latência:** Como tudo roda localmente, a resposta é instantânea.
+
+---
+
+## 🛠️ Tecnologias
+
+-   **Frontend:** React 18 + Vite
+-   **Estilização:** Vanilla CSS (Design System Customizado)
+-   **Persistência:** Web Storage API (LocalStorage)
+
+---
+
+## ⚙️ Como Iniciar
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone https://github.com/vohnsonv/QueueMaster-Terminal.git
+    cd QueueMaster-Terminal
+    ```
+
+2.  **Instale as dependências:**
+    ```bash
+    npm install
+    ```
+
+3.  **Rode a aplicação:**
+    ```bash
+    npm run dev
+    ```
+Acesse `http://localhost:3000` e comece a emitir suas senhas!
+
+---
+
+## 📂 Estrutura Organizada
 
 ```bash
-Painel de Senhas/
-├── backend/            # API FastAPI (Lógica e Banco de Dados)
-│   ├── main.py
-│   ├── config.py
-│   ├── requirements.txt
-│   └── senhas.db
-└── frontend/           # Interface React + Vite
-    ├── src/
-    ├── public/
-    └── package.json
+.
+├── src/                # Código fonte React e Estilos
+├── public/             # Ativos estáticos
+├── index.html          # Ponto de entrada
+├── package.json        # Dependências
+├── vite.config.js      # Configurações do Vite
+└── README.md           # Documentação
 ```
 
 ---
 
-## 🌟 Funcionalidades Web
+## 📄 Licença
 
--   🎨 **UX/UI Premium:** Interface com Glassmorphism, Neon Glow e Inter (Google Fonts).
--   📡 **API Real-time:** Dashboard que se atualiza automaticamente.
--   🛠️ **Painel de Controle:** Atendimento simplificado para administradores.
--   ⚡ **Leve e Rápido:** Backend performático com FastAPI e Frontend otimizado com Vite.
+Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ---
 
-## 🛠️ Como Executar
-
-### 1. Backend (API)
-```bash
-cd backend
-pip install -r requirements.txt
-python main.py
-```
-A API rodará em `http://localhost:8000`.
-
-### 2. Frontend (Interface)
-```bash
-cd frontend
-npm install
-npm run dev
-```
-O frontend rodará em `http://localhost:3000`.
-
----
-
-## 🚀 Próximos Passos (GitHub)
-
-Para subir esta nova estrutura organizada:
-```bash
-git add .
-git commit -m "Refactor: Transform to Web App with FastAPI/React 🌐"
-git push origin main
-```
-
----
-
-Desenvolvido com ❤️ por [Vitoria](https://github.com/vitoria)
+Desenvolvido com ❤️ por [Vitoria](https://github.com/vohnsonv)

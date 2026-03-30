@@ -31,19 +31,24 @@ O projeto é dividido em duas partes essenciais:
 
 ### 🖨️ Como configurar a Impressora (Local)
 
-1.  Abra seu terminal.
-2.  **Entre na pasta de impressão:**
+#### 🚀 MODO RECOMENDADO: Interface Visual (GUI)
+1.  Abra seu terminal na pasta do projeto.
+2.  **Instale os requisitos (pela primeira vez):**
     ```bash
-    cd ~/Desktop/"Painel de Senhas"/print_node
+    cd print_node && pip install -r requirements.txt
     ```
-3.  **Instale os requisitos:**
-    -   No Windows: `setup_print_node.bat`
-    -   No Linux: `sudo apt update && sudo apt install -y python3-venv python3-pip && chmod +x setup_print_node.sh && ./setup_print_node.sh`
-4.  **Inicie o servidor de impressão:**
+3.  **Inicie a interface:**
     ```bash
-    python3 print_server.py
+    python3 gui_app.py
     ```
-5.  O site em `localhost:3000` mostrará o status **"Impressora Conectada"** automaticamente!
+4.  **Configure:** Clique com o botão direito no ícone verde da barra de tarefas e selecione **"Configurar"** para escolher sua impressora.
+
+#### 🔧 Modo Avançado (Somente via Terminal)
+Se preferir rodar sem interface, use:
+```bash
+python3 print_server.py
+```
+*No Linux Debian/Ubuntu, se houver erro de dependência, rode:* `sudo apt install python3-venv python3-pip`.
 
 ### 2. Iniciar a Aplicação Web
 Na raiz do projeto:

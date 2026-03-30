@@ -231,25 +231,21 @@ function App() {
               Siga os passos abaixo na sua recepção para ativar a impressão física:
             </p>
 
-            <div className="setup-step">
-              <h3>1. Instalador Automático (Recomendado)</h3>
-              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Abra seu terminal e cole os comandos abaixo:</p>
-              <div className="code-block">
-                <span>Windows: cd Desktop/"Painel de Senhas/print_node" && setup_print_node.bat</span>
-                <button className="copy-btn" onClick={() => copyToClipboard('cd Desktop/"Painel de Senhas/print_node" && setup_print_node.bat')}>Copiar</button>
+            <div className="setup-step" style={{ padding: '15px', background: 'rgba(173, 255, 47, 0.05)', borderRadius: '12px', border: '1px solid rgba(173, 255, 47, 0.2)' }}>
+              <h3 style={{ color: '#adff2f' }}>🚀 MODO RECOMENDADO: QueueMaster GUI</h3>
+              <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Use a interface visual para configurar sua impressora sem códigos:</p>
+              <div className="code-block" style={{ background: '#111' }}>
+                <span>python3 gui_app.py</span>
+                <button className="copy-btn" onClick={() => copyToClipboard("python3 gui_app.py")}>Copiar</button>
               </div>
-              <div className="code-block" style={{ marginTop: '8px' }}>
-                <span>Linux: sudo apt update && sudo apt install -y python3-venv python3-pip && cd ~/Desktop/"Painel de Senhas"/print_node && chmod +x setup_print_node.sh && ./setup_print_node.sh</span>
-                <button className="copy-btn" onClick={() => copyToClipboard('sudo apt update && sudo apt install -y python3-venv python3-pip && cd ~/Desktop/"Painel de Senhas"/print_node && chmod +x setup_print_node.sh && ./setup_print_node.sh')}>Copiar</button>
-              </div>
+              <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>* Procure o ícone verde na sua barra de tarefas após rodar.</p>
             </div>
 
-            <div className="setup-step">
-              <h3>2. Iniciar Motor de Impressão</h3>
-              <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Após instalar, inicie o servidor:</p>
+            <div className="setup-step" style={{ marginTop: '20px' }}>
+              <h3>🔧 Modo Avançado (Somente via Terminal)</h3>
               <div className="code-block">
-                <span>python3 print_server.py</span>
-                <button className="copy-btn" onClick={() => copyToClipboard("python3 print_server.py")}>Copiar</button>
+                <span>Linux: sudo apt update && sudo apt install -y python3-venv python3-pip && cd ~/Desktop/"Painel de Senhas"/print_node && ./setup_print_node.sh</span>
+                <button className="copy-btn" onClick={() => copyToClipboard('sudo apt update && sudo apt install -y python3-venv python3-pip && cd ~/Desktop/"Painel de Senhas"/print_node && ./setup_print_node.sh')}>Copiar</button>
               </div>
             </div>
 

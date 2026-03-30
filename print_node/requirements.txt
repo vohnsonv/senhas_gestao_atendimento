@@ -1,4 +1,6 @@
 flask
 flask-cors
-pywin32; platform_system == "Windows"
-python-escpos; platform_system == "Linux"
+python-escpos
+pystray
+Pillow
+pyinstaller

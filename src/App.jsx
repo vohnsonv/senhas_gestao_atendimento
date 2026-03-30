@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import './App.css'
 
 const STORAGE_KEY = 'queuemaster_v1_data'
+const PRINT_NODE_URL = 'http://localhost:5000'
 
 function App() {
   const [data, setData] = useState(() => {
@@ -17,21 +18,49 @@ function App() {
     
     if (saved) {
       const parsed = JSON.parse(saved)
-      // Check for daily reset
-      if (parsed.date !== initial.date) {
-        return initial
-      }
+      if (parsed.date !== initial.date) return initial
       return parsed
     }
     return initial
   })
 
   const [lastTicket, setLastTicket] = useState(null)
+  const [printerOnline, setPrinterOnline] = useState(false)
 
   // Sync to LocalStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }, [data])
+
+  // Check Print Node Status
+  const checkPrinter = async () => {
+    try {
+      const res = await fetch(`${PRINT_NODE_URL}/status`)
+      if (res.ok) setPrinterOnline(true)
+      else setPrinterOnline(false)
+    } catch {
+      setPrinterOnline(false)
+    }
+  }
+
+  useEffect(() => {
+    checkPrinter()
+    const interval = setInterval(checkPrinter, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const printTicket = async (senha, tipo) => {
+    if (!printerOnline) return
+    try {
+      await fetch(`${PRINT_NODE_URL}/print`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senha, tipo, lab: "UNIDADE TORITAMA" })
+      })
+    } catch (err) {
+      console.error("Falha ao imprimir:", err)
+    }
+  }
 
   const emitTicket = (tipo) => {
     const numero = tipo === 'C' ? data.common : data.priority
@@ -51,10 +80,8 @@ function App() {
     }))
 
     setLastTicket(senha)
+    printTicket(senha, tipo) // Solicita impressão local
     setTimeout(() => setLastTicket(null), 8000)
-    
-    // Webhook integration (optional, if user still wants it)
-    // We can use a try/catch fetch here
   }
 
   const callNext = () => {
@@ -66,25 +93,20 @@ function App() {
     let nextIndex = -1
     let newStreak = data.p_streak
 
-    // Logic: 2 Priority : 1 Common
     if (newStreak >= 2) {
       nextIndex = data.waiting.findIndex(item => item.tipo === 'C')
-      if (nextIndex !== -1) {
-        newStreak = 0
-      }
+      if (nextIndex !== -1) newStreak = 0
     }
 
     if (nextIndex === -1) {
       nextIndex = data.waiting.findIndex(item => item.tipo === 'P')
-      if (nextIndex !== -1) {
-        newStreak += 1
-      } else {
+      if (nextIndex !== -1) newStreak += 1
+      else {
         nextIndex = data.waiting.findIndex(item => item.tipo === 'C')
         newStreak = 0
       }
     }
 
-    // Safety fallback
     if (nextIndex === -1) nextIndex = 0
 
     const nextItem = data.waiting[nextIndex]
@@ -98,17 +120,23 @@ function App() {
       p_streak: newStreak
     }))
     
-    alert(`📢 Chamando: ${nextItem.senha}`)
+    // Play sound or alert
+    const msg = new SpeechSynthesisUtterance(`Senha ${nextItem.senha}, favor comparecer ao guichê.`);
+    window.speechSynthesis.speak(msg);
   }
 
-  // Calculate Average Wait Time (simplified simulated logic)
   const avgWait = (data.waiting.length + 1) * 5
 
   return (
     <div className="app-container">
-      <header style={{ gridColumn: '1 / -1' }}>
-        <h1 className="hero-title">QueueMaster Pro 🚀</h1>
-        <p style={{ opacity: 0.5, marginBottom: '20px' }}>Terminal de Autoatendimento Web (Serverless)</p>
+      <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="hero-title">QueueMaster Pro 🚀</h1>
+          <p style={{ opacity: 0.5, marginBottom: '20px' }}>Terminal de Autoatendimento Web (Serverless)</p>
+        </div>
+        <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`}>
+          {printerOnline ? '● Impressora Conectada' : '○ Impressora Offline'}
+        </div>
       </header>
 
       <section className="terminal-section">
@@ -131,6 +159,7 @@ function App() {
             <div style={{ marginTop: '30px', textAlign: 'center', animation: 'fadeIn 0.5s' }}>
               <p style={{ fontSize: '0.9rem', color: '#888' }}>Sua Senha:</p>
               <h3 style={{ fontSize: '3.5rem', color: '#adff2f', textShadow: '0 0 20px rgba(173, 255, 47, 0.3)' }}>{lastTicket}</h3>
+              {!printerOnline && <p style={{ color: '#ff4444', fontSize: '0.8rem', marginTop: '10px' }}>Aviso: Impressora Offline. Verifique o Print Node.</p>}
             </div>
           )}
         </div>
@@ -180,7 +209,7 @@ function App() {
       </section>
 
       <footer className="status-bar">
-        DATA: {data.date} • UNIDADE LOCAL BROWSER • V1.2 PROFESSIONAL
+        DATA: {data.date} • UNIDADE LOCAL BROWSER • V1.5 PRO (WITH PRINT NODE)
       </footer>
     </div>
   )

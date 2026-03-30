@@ -1,63 +1,70 @@
-# 🚀 QueueMaster Pro - Sistema de Senhas Serverless 🌐
+# 🚀 QueueMaster Pro - Sistema de Senhas Web + Print Node 🌐🖨️
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/Frontend-React/Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Storage](https://img.shields.io/badge/Storage-LocalStorage-orange?logo=google-chrome&logoColor=white)]()
-[![Status](https://img.shields.io/badge/Status-Ready-brightgreen.svg)]()
+[![Print Node](https://img.shields.io/badge/Print--Node-Python-blue?logo=python&logoColor=white)]()
+[![Status](https://img.shields.io/badge/Status-Pro--Version-brightgreen.svg)]()
 
-Um sistema de gestão de senhas profissional, elegante e **100% independente**, que roda inteiramente no seu navegador usando **LocalStorage**. Sem necessidade de backend ou banco de dados externo!
-
----
-
-## 🌟 Diferenciais
-
--   💎 **Design Premium:** Estética Dark/Neon com Glassmorphism e tipografia moderna (Inter).
--   💾 **Persistência Local:** Seus dados (fila, contadores e histórico) são salvos no navegador. Atualize a página sem medo!
--   ⚖️ **Inteligência de Fila:** Regra de intercalação 2:1 (2 Preferenciais para cada 1 Comum) integrada.
--   📅 **Reset Diário:** Os contadores resetam automaticamente no primeiro acesso de cada novo dia.
--   🚀 **Zero Latência:** Como tudo roda localmente, a resposta é instantânea.
+Um sistema de gestão de senhas completo com interface web **Premium** e um **Print Node** local para impressão profissional via comandos ESC/POS.
 
 ---
 
-## 🛠️ Tecnologias
+## 🏗️ Arquitetura do Sistema
 
--   **Frontend:** React 18 + Vite
--   **Estilização:** Vanilla CSS (Design System Customizado)
--   **Persistência:** Web Storage API (LocalStorage)
-
----
-
-## ⚙️ Como Iniciar
-
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://github.com/vohnsonv/QueueMaster-Terminal.git
-    cd QueueMaster-Terminal
-    ```
-
-2.  **Instale as dependências:**
-    ```bash
-    npm install
-    ```
-
-3.  **Rode a aplicação:**
-    ```bash
-    npm run dev
-    ```
-Acesse `http://localhost:3000` e comece a emitir suas senhas!
+O projeto é dividido em duas partes essenciais:
+1.  **Web App (Raiz):** Interface moderna que roda no navegador e gerencia a fila via LocalStorage.
+2.  **Print Node (`/print_node`):** Um servidor local em Python que faz a ponte entre o navegador e sua impressora física.
 
 ---
 
-## 📂 Estrutura Organizada
+## 🌟 Funcionalidades
+
+-   🎨 **Design High-End:** Interface Dark/Neon com Glassmorphism.
+-   💾 **Persistência Inteligente:** Fila e contadores salvos no LocalStorage do navegador.
+-   🖨️ **Impressão Profissional:** Suporte a comandos ESC/POS (Matriciais e Térmicas) via Python.
+-   🔊 **Chamada por Voz:** O sistema utiliza síntese de voz para anunciar a próxima senha.
+-   ⚙️ **Multiplataforma:** Compatível com Windows e Linux.
+
+---
+
+## 🚀 Como Configurar e Rodar
+
+### 1. Preparar o Print Node (Servidor de Impressão)
+Entre na pasta `print_node` e execute o script de instalação automática:
+-   **Windows:** Clique duas vezes em `setup_print_node.bat`
+-   **Linux:** Execute `bash setup_print_node.sh`
+
+Depois, inicie o servidor:
+```bash
+python print_server.py
+```
+
+### 2. Iniciar a Aplicação Web
+Na raiz do projeto:
+```bash
+npm install
+npm run dev
+```
+
+### 3. Uso
+-   Abra `http://localhost:3000`.
+-   Verifique se o indicador **"Impressora Conectada"** aparece no topo.
+-   Ao emitir uma senha, o ticket será impresso automaticamente na sua impressora padrão!
+
+---
+
+## 📂 Estrutura de Pastas
 
 ```bash
 .
-├── src/                # Código fonte React e Estilos
-├── public/             # Ativos estáticos
-├── index.html          # Ponto de entrada
-├── package.json        # Dependências
-├── vite.config.js      # Configurações do Vite
-└── README.md           # Documentação
+├── src/                # Interface React
+├── public/             # Ativos da Web
+├── print_node/         # Motor de Impressão (Python)
+│   ├── print_server.py
+│   ├── setup_print_node.sh
+│   └── requirements.txt
+├── README.md           # Você está aqui
+└── LICENSE             # Licença MIT
 ```
 
 ---

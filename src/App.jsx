@@ -235,12 +235,12 @@ function App() {
               <h3>1. Instalador Automático (Recomendado)</h3>
               <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Abra seu terminal e cole os comandos abaixo:</p>
               <div className="code-block">
-                <span>Windows: cd "Painel de Senhas/print_node" && setup_print_node.bat</span>
-                <button className="copy-btn" onClick={() => copyToClipboard('cd "Painel de Senhas/print_node" && setup_print_node.bat')}>Copiar</button>
+                <span>Windows: cd Desktop/"Painel de Senhas/print_node" && setup_print_node.bat</span>
+                <button className="copy-btn" onClick={() => copyToClipboard('cd Desktop/"Painel de Senhas/print_node" && setup_print_node.bat')}>Copiar</button>
               </div>
               <div className="code-block" style={{ marginTop: '8px' }}>
-                <span>Linux: cd "Painel de Senhas/print_node" && chmod +x setup_print_node.sh && ./setup_print_node.sh</span>
-                <button className="copy-btn" onClick={() => copyToClipboard('cd "Painel de Senhas/print_node" && chmod +x setup_print_node.sh && ./setup_print_node.sh')}>Copiar</button>
+                <span>Linux: cd ~/Desktop/"Painel de Senhas"/print_node && chmod +x setup_print_node.sh && ./setup_print_node.sh</span>
+                <button className="copy-btn" onClick={() => copyToClipboard('cd ~/Desktop/"Painel de Senhas"/print_node && chmod +x setup_print_node.sh && ./setup_print_node.sh')}>Copiar</button>
               </div>
             </div>
 

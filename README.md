@@ -34,7 +34,7 @@ O projeto é dividido em duas partes essenciais:
 1.  Abra seu terminal.
 2.  **Entre na pasta de impressão:**
     ```bash
-    cd "Painel de Senhas/print_node"
+    cd ~/Desktop/"Painel de Senhas"/print_node
     ```
 3.  **Instale os requisitos:**
     -   No Windows: `setup_print_node.bat`

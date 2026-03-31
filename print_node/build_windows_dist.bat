@@ -1,3 +1,4 @@
+
 @echo off
 echo --- Gerando Executavel QueueMaster Print Node (Windows) ---
 pip install flask flask-cors python-escpos pystray Pillow pyinstaller

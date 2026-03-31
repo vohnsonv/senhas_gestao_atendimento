@@ -59,7 +59,7 @@ def print_ticket():
     data = request.json
     senha = data.get('senha', '000')
     tipo = data.get('tipo', 'C')
-    lab = data.get('lab', 'ATENDE.ORG')
+    lab = data.get('lab', 'PAINEL DE SENHAS')
     
     # Comandos ESC/POS (Genéricos)
     ESC = b'\x1b'

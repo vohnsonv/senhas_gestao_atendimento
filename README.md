@@ -1,21 +1,22 @@
-# 🟢 ATENDE.ORG - Gestão de Atendimento Inteligente 💎✨
+# 🟢 PAINEL DE SENHAS - Gestão de Atendimento 🎫✨
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/Frontend-React/Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Status](https://img.shields.io/badge/Status-Premium--UX-brightgreen.svg)]()
+[![Status](https://img.shields.io/badge/Status-Premium--v3-brightgreen.svg)]()
 
-O **ATENDE.ORG** é uma solução premium para recepções de guichê único, focada em alta performance, transparência e experiência do usuário (UX). Com design baseado em Glassmorphism e tons de esmeralda, o sistema oferece controle total do fluxo de pacientes.
+O **PAINEL DE SENHAS** é uma solução profissional para recepções de guichê único, focada em simplicidade, eficiência e transparência. Com um design moderno baseado em Glassmorphism e ícones intuitivos, o sistema organiza o fluxo de atendimento de forma impecável.
 
 ---
 
-## 🏗️ Diferenciais do ATENDE.ORG
+## 🏗️ Diferenciais do Sistema
 
--   🎨 **UX High-End:** Interface "Less Dark" com paleta de verdes harmoniosos e fundo dinâmico.
--   ⏳ **Timer em Tempo Real:** Cronômetro automático para monitorar a duração de cada atendimento individual.
--   📊 **Histórico Profissional:** Tabela detalhada com Horário de Início, Fim e Duração Total.
--   ⚡ **Otimizado para Unidade Única:** Atalhos de teclado (`Espaço`) e modos de prioridade configuráveis.
--   🔊 **Notificações Inteligentes:** Chime sonoro profissional seguido de chamada por voz (TTS).
--   🖨️ **Print Node GUI:** Gerenciador de impressão com interface visual e ícone na bandeja do sistema.
+-   🎨 **Interface Premium:** Design elegante em tons de verde esmeralda com fundo dinâmico.
+-   🎫 **Ícones Intuitivos:** Navegação facilitada por ícones Lucide (Tickets, Relógio, Histórico).
+-   ⏳ **Timer de Atendimento:** Monitoramento em tempo real da duração de cada chamada.
+-   📊 **Relatório de Fluxo:** Tabela de histórico detalhada com horários de início, fim e duração total.
+-   ⚡ **Otimização de Guichê:** Atalhos de teclado (`Espaço`) para chamar o próximo cliente.
+-   🔊 **Chamada de Som e Voz:** Notificação sonora ("Chime") seguida de narração em português (pt-BR).
+-   🖨️ **Print Node nativo:** Sistema de impressão local robusto com interface visual.
 
 ---
 
@@ -32,17 +33,16 @@ Acesse em: `http://localhost:3000`
 ### 2. Print Node (Motor de Impressão)
 
 #### 🐧 Como Instalar no Ubuntu (.bin)
-Se você baixou o arquivo `QueueMaster_PrintNode_Linux.zip` pelo site:
-1.  **Extraia o arquivo:** Clique com o botão direito e "Extrair aqui".
-2.  **Abra o terminal na pasta e dê permissão:**
+1.  **Extraia o arquivo** `QueueMaster_PrintNode_Linux.zip`.
+2.  **Dê permissão de execução:**
     ```bash
     chmod +x QueueMaster_PrintNode_Linux.bin
     ```
-3.  **Execute o aplicativo:**
+3.  **Execute:**
     ```bash
     ./QueueMaster_PrintNode_Linux.bin
     ```
-*Procure o ícone verde na sua barra de tarefas para configurar a impressora.*
+*Configure sua impressora clicando com o botão direito no ícone verde da barra de tarefas.*
 
 ---
 
@@ -50,12 +50,11 @@ Se você baixou o arquivo `QueueMaster_PrintNode_Linux.zip` pelo site:
 
 ```bash
 .
-├── src/                # Interface React (Green Glassmorphism)
-├── public/             # Ativos e Downloads (.zip, .bin)
-├── print_node/         # Motor de Impressão Python (GUI + Flask)
-│   ├── gui_app.py      # App de Bandeja (Systray)
-│   ├── print_server.py # Servidor de Fundo
-│   └── build_windows_dist.bat # Script para gerar .exe no Windows
+├── src/                # Frontend React (UX/UI)
+├── public/             # Favicon, Assets e Downloads
+├── print_node/         # Backend de Impressão Python
+│   ├── gui_app.py      # App visual da impressora
+│   └── print_server.py # Servidor local
 └── README.md           # Você está aqui
 ```
 
@@ -64,4 +63,4 @@ Se você baixou o arquivo `QueueMaster_PrintNode_Linux.zip` pelo site:
 ## 📄 Licença
 Este projeto está sob a licença **MIT**.
 
-Desenvolvido com ❤️ para uma experiência de atendimento superior. 🟢💎
+Desenvolvido para transformar a experiência de atendimento na sua recepção. 🟢🎫

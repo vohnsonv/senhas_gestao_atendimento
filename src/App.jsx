@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Activity, UserCheck, Clock, History, Settings, Play, Pause, ListFilter } from 'lucide-react'
+import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter } from 'lucide-react'
 import './App.css'
 
 const STORAGE_KEY = 'atende_org_data_v2'
@@ -198,8 +198,8 @@ function App() {
     <div className="app-container">
       <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h1 className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Activity className="neon-green" size={42} strokeWidth={3} />
-            ATENDE.ORG
+            <Ticket className="neon-green" size={42} strokeWidth={2.5} />
+            PAINEL DE SENHAS
           </h1>
         
         <div style={{ display: 'flex', gap: '15px' }}>
@@ -221,7 +221,7 @@ function App() {
               <span>COMUM</span>
             </button>
             <button className="neon-btn btn-lime" onClick={() => emitTicket('P')}>
-              <Activity size={32} />
+              <Ticket size={32} />
               <span>PREFERENCIAL</span>
             </button>
           </div>
@@ -305,7 +305,7 @@ function App() {
       {showSetup && (
         <div className="modal-overlay" onClick={() => setShowSetup(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 style={{ color: '#fff', marginBottom: '20px' }}>Atende.org Print Node 🖨️</h2>
+            <h2 style={{ color: '#fff', marginBottom: '20px' }}>PAINEL DE SENHAS Print Node 🖨️</h2>
             <div className="setup-step" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px' }}>
               <h3 style={{ color: 'var(--neon-green)' }}>📥 Baixar Instalador</h3>
               <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
@@ -320,7 +320,7 @@ function App() {
       )}
 
       <footer className="status-bar" style={{ gridColumn: '1/-1', textAlign: 'center', opacity: 0.4, padding: '20px', fontSize: '0.8rem' }}>
-        ATENDE.ORG • SISTEMA DE GESTÃO DE FLUXO • {data.date} • ÚNICO GUICHÊ
+        PAINEL DE SENHAS • SISTEMA DE GESTÃO DE FLUXO • {data.date} • ÚNICO GUICHÊ
       </footer>
     </div>
   )

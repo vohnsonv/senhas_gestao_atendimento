@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Activity, UserCheck, Clock, History, Settings, Play, Pause, ListFilter } from 'lucide-react'
 import './App.css'
 
 const STORAGE_KEY = 'atende_org_data_v2'
@@ -196,10 +197,10 @@ function App() {
   return (
     <div className="app-container">
       <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <div>
-          <h1 className="hero-title">ATENDE.ORG ✨</h1>
-          <p style={{ opacity: 0.6, fontSize: '0.9rem' }}>Gestão de Acolhimento e Fluxo de Pacientes</p>
-        </div>
+          <h1 className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <Activity className="neon-green" size={42} strokeWidth={3} />
+            ATENDE.ORG
+          </h1>
         
         <div style={{ display: 'flex', gap: '15px' }}>
           <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`} onClick={() => setShowSetup(true)} style={{ cursor: 'pointer' }}>
@@ -216,11 +217,11 @@ function App() {
           <h2>EMISSÃO DE TICKETS</h2>
           <div className="btn-container">
             <button className="neon-btn btn-emerald" onClick={() => emitTicket('C')}>
-              <span style={{ fontSize: '1.5rem' }}>🎫</span>
+              <UserCheck size={32} />
               <span>COMUM</span>
             </button>
             <button className="neon-btn btn-lime" onClick={() => emitTicket('P')}>
-              <span style={{ fontSize: '1.5rem' }}>💎</span>
+              <Activity size={32} />
               <span>PREFERENCIAL</span>
             </button>
           </div>
@@ -234,8 +235,10 @@ function App() {
 
         <div className="glass-card" style={{ border: '2px solid var(--soft-emerald)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-             <h2>PAINEL DO ATENDENTE</h2>
-             {activeCall && <div className="active-timer">{formatTime(timerSeconds)}</div>}
+             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+               <Play size={18} /> PAINEL DO ATENDENTE
+             </h2>
+             {activeCall && <div className="active-timer"><Clock size={16} /> {formatTime(timerSeconds)}</div>}
           </div>
           
           {activeCall ? (
@@ -271,7 +274,9 @@ function App() {
               )) : <p style={{ opacity: 0.2, textAlign: 'center', marginTop: '50px' }}>Vazio</p>}
            </div>
 
-           <h2 style={{ paddingTop: '20px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>HISTÓRICO DE HOJE</h2>
+           <h2 style={{ paddingTop: '20px', borderTop: '1px dashed rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+             <History size={18} /> HISTÓRICO DE HOJE
+           </h2>
            <div style={{ flex: 1, overflowY: 'auto' }}>
               <table className="attendance-table">
                 <thead>

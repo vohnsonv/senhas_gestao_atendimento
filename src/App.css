@@ -1,12 +1,12 @@
 :root {
-  --bg-sky: #f0f9ff;
-  --bg-card: rgba(255, 255, 255, 0.75);
-  --fg-slate: #0f172a;
-  --fg-muted: #64748b;
-  --ocean-blue: #0ea5e9;
-  --sea-foam: #06b6d4;
-  --accent-blue: #0284c7;
-  --glass-border: rgba(14, 165, 233, 0.1);
+  --bg-midnight: #020617;
+  --bg-card: rgba(15, 23, 42, 0.75);
+  --fg-white: #f8fafc;
+  --fg-muted: #94a3b8;
+  --ocean-blue: #38bdf8;
+  --sea-foam: #22d3ee;
+  --accent-blue: #0ea5e9;
+  --glass-border: rgba(255, 255, 255, 0.08);
   --font-inter: 'Inter', sans-serif;
 }
 
@@ -17,14 +17,14 @@
 }
 
 body {
-  background-color: var(--bg-sky);
-  color: var(--fg-slate);
+  background-color: var(--bg-midnight);
+  color: var(--fg-white);
   font-family: var(--font-inter);
   min-height: 100vh;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.08), transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(34, 211, 238, 0.08), transparent 50%);
+    radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.05), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(15, 23, 42, 0.5), transparent 50%);
   position: relative;
 }
 
@@ -35,9 +35,9 @@ body::after {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='10' cy='10' r='2' fill='rgba(14, 165, 233, 0.15)'/%3E%3Ccircle cx='50' cy='40' r='3' fill='rgba(14, 165, 233, 0.12)'/%3E%3Ccircle cx='80' cy='20' r='1.5' fill='rgba(14, 165, 233, 0.18)'/%3E%3Ccircle cx='30' cy='80' r='4' fill='rgba(14, 165, 233, 0.08)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ccircle cx='20' cy='20' r='1.5' fill='rgba(56, 189, 248, 0.12)'/%3E%3Ccircle cx='70' cy='50' r='2.5' fill='rgba(34, 211, 238, 0.08)'/%3E%3Ccircle cx='100' cy='30' r='1' fill='rgba(56, 189, 248, 0.15)'/%3E%3Ccircle cx='40' cy='100' r='3.5' fill='rgba(14, 165, 233, 0.06)'/%3E%3C/svg%3E");
   background-repeat: repeat;
-  animation: bubbles 15s linear infinite;
+  animation: bubbles 18s linear infinite;
   pointer-events: none;
   z-index: -1;
 }
@@ -70,18 +70,18 @@ h1, h2 {
 
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 28px;
   padding: 32px;
-  box-shadow: 0 15px 45px rgba(14, 165, 233, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 .hero-title {
   font-size: 3rem;
   margin-bottom: 20px;
-  background: linear-gradient(to right, var(--ocean-blue), var(--sea-foam));
+  background: linear-gradient(to right, var(--ocean-blue), #ffffff);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -201,13 +201,13 @@ h1, h2 {
 
 .attendance-table td {
   padding: 15px 10px;
-  background: rgba(0, 0, 0, 0.01);
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.attendance-table tr td:first-child { border-left: 1px solid rgba(0, 0, 0, 0.05); border-radius: 12px 0 0 12px; }
-.attendance-table tr td:last-child { border-right: 1px solid rgba(0, 0, 0, 0.05); border-radius: 0 12px 12px 0; }
+.attendance-table tr td:first-child { border-left: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px 0 0 12px; }
+.attendance-table tr td:last-child { border-right: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0 12px 12px 0; }
 
 .status-badge {
   padding: 4px 10px;
@@ -224,11 +224,11 @@ h1, h2 {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.2rem;
   color: var(--ocean-blue);
-  background: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.4);
   padding: 5px 15px;
   border-radius: 10px;
-  border: 1px solid rgba(14, 165, 233, 0.15);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
 }
 
 /* Modal Styles Core */

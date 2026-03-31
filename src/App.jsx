@@ -198,7 +198,7 @@ function App() {
     <div className="app-container">
       <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h1 className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Ticket className="neon-green" size={42} strokeWidth={2.5} />
+            <Ticket style={{ color: 'var(--ocean-blue)' }} size={42} strokeWidth={2.5} />
             PAINEL DE SENHAS
           </h1>
         
@@ -228,12 +228,12 @@ function App() {
           {lastTicket && (
             <div style={{ position: 'absolute', top: '20px', right: '40px', textAlign: 'center' }}>
                <p style={{ fontSize: '0.6rem', opacity: 0.5 }}>ÚLTIMO EMITIDO</p>
-               <p style={{ color: 'var(--neon-green)', fontWeight: '900', fontSize: '1.5rem' }}>{lastTicket}</p>
+               <p style={{ color: 'var(--ocean-blue)', fontWeight: '900', fontSize: '1.5rem' }}>{lastTicket}</p>
             </div>
           )}
         </div>
 
-        <div className="glass-card" style={{ border: '2px solid var(--soft-emerald)' }}>
+        <div className="glass-card" style={{ border: '2px solid rgba(14, 165, 233, 0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                <Play size={18} /> PAINEL DO ATENDENTE
@@ -244,7 +244,7 @@ function App() {
           {activeCall ? (
             <div style={{ textAlign: 'center', padding: '20px' }}>
               <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>EM ATENDIMENTO AGORA</p>
-              <h3 style={{ fontSize: '5rem', color: 'var(--accent-lime)', textShadow: '0 0 30px rgba(163, 230, 53, 0.4)' }}>{activeCall.senha}</h3>
+              <h3 style={{ fontSize: '5rem', color: 'var(--ocean-blue)', textShadow: '0 0 30px rgba(14, 165, 233, 0.2)' }}>{activeCall.senha}</h3>
               <p style={{ opacity: 0.7, marginTop: '10px' }}>Iniciado às {activeCall.startTime}</p>
             </div>
           ) : (

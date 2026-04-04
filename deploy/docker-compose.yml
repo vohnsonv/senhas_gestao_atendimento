@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   queuemaster-web:
-    build: .
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
     container_name: queuemaster-web
     ports:
       - "80:80"

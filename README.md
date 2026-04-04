@@ -30,6 +30,12 @@ npm run dev
 ```
 Acesse em: `http://localhost:3000`
 
+### Docker (produção)
+Na raiz do repositório:
+```bash
+docker compose -f deploy/docker-compose.yml up --build
+```
+
 ### 2. Print Node (Motor de Impressão)
 
 #### 🐧 Como Instalar no Ubuntu (.bin)
@@ -50,17 +56,19 @@ Acesse em: `http://localhost:3000`
 
 ```bash
 .
-├── src/                # Frontend React (UX/UI)
-├── public/             # Favicon, Assets e Downloads
-├── print_node/         # Backend de Impressão Python
-│   ├── gui_app.py      # App visual da impressora
-│   └── print_server.py # Servidor local
-└── README.md           # Você está aqui
+├── src/                 # Frontend React (UX/UI)
+├── public/              # Favicon, assets e downloads
+├── deploy/              # Dockerfile, compose e nginx
+├── tools/print_node/    # Backend de impressão (Python)
+│   ├── gui_app.py
+│   └── print_server.py
+├── docs/                # Licença e documentação auxiliar
+└── README.md
 ```
 
 ---
 
 ## 📄 Licença
-Este projeto está sob a licença **MIT**.
+Este projeto está sob a licença **MIT**. Texto completo em [`docs/LICENSE`](docs/LICENSE).
 
 Desenvolvido para transformar a experiência de atendimento na sua recepção. 🟢🎫

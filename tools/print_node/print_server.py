@@ -1,6 +1,7 @@
 import os
 import sys
 import platform
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -15,19 +16,52 @@ if IS_WINDOWS:
     except ImportError:
         print("Aviso: pywin32 não instalado. Impressão no Windows não funcionará.")
 
+def list_printers():
+    printers = []
+    if IS_WINDOWS:
+        try:
+            # Opção 4: local printers
+            # Opção 2: network printers
+            enum_flags = win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS
+            all_printers = win32print.EnumPrinters(enum_flags)
+            for p in all_printers:
+                printers.append(p[2]) # p[2] is the printer name
+        except Exception as e:
+            print(f"Erro ao listar impressoras: {e}")
+    else:
+        # No Linux, poderíamos usar 'lpstat -p | awk '{print $2}''
+        import subprocess
+        try:
+            output = subprocess.check_output(['lpstat', '-p']).decode()
+            for line in output.split('\n'):
+                if line.startswith('printer'):
+                    printers.append(line.split(' ')[1])
+        except:
+            printers.append("Default (Linux/CUPS)")
+    return printers
+
 def get_default_printer():
     if IS_WINDOWS:
-        return win32print.GetDefaultPrinter()
-    return "Default (Linux/CUPS)"
+        try:
+            return win32print.GetDefaultPrinter()
+        except:
+            return None
+    return "Default"
 
 def send_to_printer(raw_data, printer_name=None):
     if IS_WINDOWS:
         if not printer_name:
             printer_name = win32print.GetDefaultPrinter()
         
-        hPrinter = win32print.OpenPrinter(printer_name)
         try:
-            hJob = win32print.StartDocPrinter(hPrinter, 1, ("QueueMaster Print Job", None, "RAW"))
+            hPrinter = win32print.OpenPrinter(printer_name)
+        except Exception as e:
+            print(f"Aviso: Impressora '{printer_name}' não encontrada. Tentando padrão...")
+            printer_name = win32print.GetDefaultPrinter()
+            hPrinter = win32print.OpenPrinter(printer_name)
+            
+        try:
+            hJob = win32print.StartDocPrinter(hPrinter, 1, ("Ticket Atendimento", None, "RAW"))
             win32print.StartPagePrinter(hPrinter)
             win32print.WritePrinter(hPrinter, raw_data)
             win32print.EndPagePrinter(hPrinter)
@@ -35,15 +69,18 @@ def send_to_printer(raw_data, printer_name=None):
         finally:
             win32print.ClosePrinter(hPrinter)
     else:
-        # No Linux, tentamos escrever diretamente no dispositivo ou via lp
-        # (Ajuste o caminho do dispositivo conforme necessário, ex: /dev/usb/lp0)
+        # No Linux
         try:
+            # Tentar via /dev/usb/lp0 primeiro (acesso direto)
             with open('/dev/usb/lp0', 'wb') as f:
                 f.write(raw_data)
         except Exception as e:
-            # Fallback: Usar o comando 'lp' do sistema
+            # Fallback: Usar o comando 'lp'
             import subprocess
-            process = subprocess.Popen(['lp', '-o', 'raw'], stdin=subprocess.PIPE)
+            cmd = ['lp', '-o', 'raw']
+            if printer_name:
+                cmd.extend(['-d', printer_name])
+            process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
             process.communicate(input=raw_data)
 
 @app.route('/status', methods=['GET'])
@@ -51,7 +88,14 @@ def status():
     return jsonify({
         "status": "online",
         "platform": platform.system(),
-        "printer": get_default_printer()
+        "default_printer": get_default_printer()
+    })
+
+@app.route('/printers', methods=['GET'])
+def get_printers_list():
+    return jsonify({
+        "printers": list_printers(),
+        "default": get_default_printer()
     })
 
 @app.route('/print', methods=['POST'])
@@ -60,41 +104,70 @@ def print_ticket():
     senha = data.get('senha', '000')
     tipo = data.get('tipo', 'C')
     lab = data.get('lab', 'PAINEL DE SENHAS')
+    printer_name = data.get('printer_name')
+    is_test = data.get('is_test', False)
+    data_str = data.get('data', '--/--/----')
+    hora_str = data.get('hora', '--:--')
+    espera_min = data.get('espera', 5)
+    emoji = data.get('emoji', ':)')
     
-    # Comandos ESC/POS (Genéricos)
+    # Comandos ESC/POS
     ESC = b'\x1b'
     GS = b'\x1d'
+    
     Initialize = ESC + b'@'
+    Center = ESC + b'a\x01'
     BoldOn = ESC + b'E\x01'
     BoldOff = ESC + b'E\x00'
-    DoubleSizeOn = GS + b'!\x11' # Double height & width
+    # MEGA FONTE
+    QuadrupleSizeOn = GS + b'!\x33'
+    DoubleSizeOn = GS + b'!\x11'
+    DoubleHeightOn = GS + b'!\x01'
     DoubleSizeOff = GS + b'!\x00'
-    Center = ESC + b'a\x01'
-    Left = ESC + b'a\x00'
-    Cut = GS + b'V\x00' # Full cut
     
-    raw_bytes = Initialize
-    raw_bytes += Center + BoldOn + lab.encode('cp850') + b'\n' + BoldOff
+    # Caracteres de borda CP850
+    raw_bytes = Initialize + Center
     
-    tipo_text = "PREFERENCIAL" if tipo == 'P' else "COMUM"
-    raw_bytes += b'ATENDIMENTO ' + tipo_text.encode('cp850') + b'\n'
-    raw_bytes += b'--------------------------------\n'
+    # Cabeçalho decorado
+    raw_bytes += b'\xc9' + b'\xcd' * 30 + b'\xbb\n'
+    raw_bytes += b'\xba' + Center + BoldOn + DoubleHeightOn + b'  PAINEL DE SENHAS  '.encode('cp850') + DoubleSizeOff + b'\xba\n'
+    raw_bytes += b'\xc8' + b'\xcd' * 30 + b'\xbc\n'
+    raw_bytes += b'\n'
     
-    raw_bytes += DoubleSizeOn + senha.encode('cp850') + DoubleSizeOff + b'\n'
-    raw_bytes += b'--------------------------------\n'
+    if is_test:
+        raw_bytes += QuadrupleSizeOn + b'TESTE\n' + DoubleSizeOff
+        raw_bytes += b'GUILHOTINA OK?\n'
+        raw_bytes += b'--------------------------------\n'
+    else:
+        tipo_text = "PREFERENCIAL" if tipo == 'P' else "COMUM"
+        raw_bytes += DoubleHeightOn + b'ATENDIMENTO ' + tipo_text.encode('cp850') + DoubleSizeOff + b'\n'
+        raw_bytes += b'\n'
+        raw_bytes += QuadrupleSizeOn + senha.encode('cp850') + DoubleSizeOff + b'\n'
+        raw_bytes += f'       {emoji}\n'.encode('cp850', 'ignore')
+        raw_bytes += b'\n'
+        raw_bytes += b'--------------------------------\n'
+        raw_bytes += f'Data: {data_str}  Hora: {hora_str}\n'.encode('cp850')
+        raw_bytes += DoubleHeightOn + f'Tempo Est.: ~{espera_min} min\n'.encode('cp850') + DoubleSizeOff
+        raw_bytes += b'--------------------------------\n'
     
-    raw_bytes += b'AGUARDE CHAMADO NO PAINEL\n'
-    raw_bytes += b'\n' * 5 # Espaço para corte manual se não houver guilhotina
-    raw_bytes += Cut
+    raw_bytes += b'\n'
+    raw_bytes += BoldOn + b'AGUARDE SER CHAMADO NO PAINEL\n' + BoldOff
+    
+    raw_bytes += b'\n' * 4 # Avanço
+    raw_bytes += GS + b'V\x42\x00' # Corte (V 66 0)
+    raw_bytes += ESC + b'm'         # Corte (Bematech)
     
     try:
-        send_to_printer(raw_bytes)
+        send_to_printer(raw_bytes, printer_name)
         return jsonify({"success": True})
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"ERRO CRITICO NA IMPRESSAO: {error_trace}")
+        return jsonify({"success": False, "error": str(e), "trace": error_trace}), 500
 
 if __name__ == '__main__':
-    print(f"Print Node rodando em http://localhost:5000")
-    print(f"Plataforma: {platform.system()}")
-    print(f"Impressora Padrão: {get_default_printer()}")
-    app.run(port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    print(f"Print Node rodando em http://localhost:{port}")
+    app.run(host='0.0.0.0', port=port)
+

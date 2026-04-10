@@ -4,3 +4,4 @@ python-escpos
 pystray
 Pillow
 pyinstaller
+pywin32;platform_system=="Windows"

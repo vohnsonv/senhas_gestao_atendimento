@@ -1,13 +1,16 @@
 :root {
-  --bg-midnight: #011627; /* Um tom de azul noturno mais profundo e vibrante */
-  --bg-card: rgba(1, 22, 39, 0.82);
-  --fg-white: #f0f4f8;
-  --fg-muted: #94a3b8;
-  --ocean-blue: #00d2ff;
-  --sea-foam: #3a7bd5;
-  --accent-blue: #0ea5e9;
-  --glass-border: rgba(255, 255, 255, 0.12);
+  --bg-midnight: #06110f; /* Tom verde musgo bem escuro */
+  --bg-card: rgba(6, 17, 15, 0.85);
+  --fg-white: #f0faf8;
+  --fg-muted: #94a8a4;
+  --ocean-blue: #10b981; /* Verde Esmeralda */
+  --sea-foam: #34d399; /* Verde Água */
+  --accent-blue: #059669; /* Verde Forte */
+  --glass-border: rgba(16, 185, 129, 0.15);
   --font-inter: 'Inter', sans-serif;
+  --neon-green: #10b981;
+  --accent-lime: #a3e635;
+  --font-multiplier: 1.1; /* Ajuste global de fonte */
 }
 
 * {
@@ -20,41 +23,26 @@ body {
   background-color: var(--bg-midnight);
   color: var(--fg-white);
   font-family: var(--font-inter);
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(0, 210, 255, 0.12), transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(58, 123, 213, 0.1), transparent 45%);
+    radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.12), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(5, 150, 105, 0.1), transparent 45%);
   position: relative;
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  /* Bolhas mais destacadas (opacidade maior e tamanhos variados) */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Ccircle cx='30' cy='30' r='4' fill='rgba(0, 210, 255, 0.35)'/%3E%3Ccircle cx='90' cy='70' r='6' fill='rgba(58, 123, 213, 0.3)'/%3E%3Ccircle cx='130' cy='40' r='3' fill='rgba(0, 210, 255, 0.4)'/%3E%3Ccircle cx='50' cy='120' r='5' fill='rgba(14, 165, 233, 0.25)'/%3E%3Ccircle cx='10' cy='100' r='2' fill='rgba(255, 255, 255, 0.2)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  animation: bubbles 12s linear infinite;
-  pointer-events: none;
-  z-index: -1;
-}
-
-@keyframes bubbles {
-  from { background-position-y: 100%; }
-  to { background-position-y: -100%; }
-}
+/* Partículas removidas a pedido do usuário */
 
 .app-container {
-  max-width: 1200px;
+  max-width: 98%;
+  width: 98%;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 20px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  grid-template-rows: auto 1fr auto;
+  gap: 30px;
+  height: 100vh;
   animation: fadeIn 0.8s ease-out;
 }
 
@@ -67,6 +55,7 @@ h1, h2 {
   font-weight: 800;
   letter-spacing: -1px;
   text-transform: uppercase;
+  font-size: 1.5rem;
 }
 
 .glass-card {
@@ -80,8 +69,8 @@ h1, h2 {
 }
 
 .hero-title {
-  font-size: 3rem;
-  margin-bottom: 20px;
+  font-size: 2.5rem;
+  margin-bottom: 0px;
   background: linear-gradient(to right, var(--ocean-blue), #ffffff);
   -webkit-background-clip: text;
   background-clip: text;
@@ -96,7 +85,7 @@ h1, h2 {
 }
 
 .neon-btn {
-  padding: 18px 24px;
+  padding: 16px 20px;
   font-size: 1.1rem;
   font-weight: 700;
   border: none;
@@ -271,4 +260,133 @@ h1, h2 {
 
 @media (max-width: 1100px) {
   .app-container { grid-template-columns: 1fr; }
+}
+
+/* --- PAINEL PÚBLICO (TV) --- */
+.public-view {
+  height: 100vh;
+  width: 100vw;
+  background-color: #010807;
+  display: grid;
+  grid-template-columns: 2.5fr 1fr; /* Sidebar um pouco mais larga para fontes grandes */
+  grid-template-rows: 1fr 400px; /* Área de anúncio maior */
+  gap: 20px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.public-current {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(0,0,0,0.6));
+  border-radius: 40px;
+  border: 8px solid var(--ocean-blue);
+  box-shadow: 0 0 150px rgba(16, 185, 129, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.public-ticket-number {
+  font-size: clamp(10rem, 40vh, 25rem); /* Tamanho adaptativo para não cortar */
+  line-height: 0.8;
+  font-weight: 950;
+  color: var(--ocean-blue);
+  text-shadow: 0 0 80px rgba(16, 185, 129, 0.5);
+  margin: 20px 0;
+}
+
+.public-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow: hidden;
+}
+
+.public-next-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px;
+  border-radius: 15px;
+  border-left: 12px solid var(--ocean-blue);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.public-ad-space {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border-radius: 30px;
+  overflow: hidden;
+  border: 4px solid rgba(255,255,255,0.05);
+}
+
+.video-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.video-container img {
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.marquee-footer-modern {
+  width: 100%;
+  background: var(--ocean-blue);
+  color: #000;
+  padding: 8px 0;
+  font-weight: 900;
+  font-size: 2rem;
+  text-transform: uppercase;
+}
+
+.public-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.public-next-item {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 20px;
+  border-left: 10px solid var(--ocean-blue);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.public-ad-space {
+  grid-column: 1 / -1;
+  border-radius: 30px;
+  overflow: hidden;
+  border: 3px solid rgba(255,255,255,0.1);
+  background: #000;
+}
+
+.public-ad-space img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marquee-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: var(--ocean-blue);
+  color: #000;
+  padding: 10px;
+  font-weight: 900;
+  font-size: 1.5rem;
+  text-transform: uppercase;
 }

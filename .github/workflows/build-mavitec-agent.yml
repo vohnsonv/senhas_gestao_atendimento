@@ -35,5 +35,16 @@ jobs:
       with:
         name: Mavitec_PrintAgent_Exe
         path: dist/Mavitec_PrintAgent.exe
-        if-no-files-found: error
         retention-days: 7
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest
+        name: Mavitec Print Agent (Latest Build)
+        body: |
+          Executável automático gerado pelo sistema Mavitec.
+          Inclui GUI e configurações de margem.
+        files: dist/Mavitec_PrintAgent.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

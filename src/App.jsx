@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter, Lock, Accessibility, CheckCircle2 } from 'lucide-react'
+import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter, Lock, Accessibility, CheckCircle2, Volume2 } from 'lucide-react'
 import './App.css'
 
 const STORAGE_KEY = 'atende_org_data_v2'
@@ -369,6 +369,39 @@ function App() {
     })
   }
 
+  const callSpecificTicket = (id) => {
+    // Sound Feedback Local
+    try {
+      const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
+      clickSound.volume = 0.4
+      clickSound.play()
+    } catch(e) {}
+
+    const index = data.waiting.findIndex(item => item.id === id)
+    if (index === -1) return
+
+    const nextItem = data.waiting[index]
+    const newWaiting = data.waiting.filter(item => item.id !== id)
+
+    let historyUpdate = []
+    if (data.activeCall) {
+      const finishedItem = {
+        ...data.activeCall,
+        endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        duration: formatTime(timerSeconds)
+      }
+      historyUpdate = [finishedItem]
+    }
+
+    setData(prev => ({
+      ...prev,
+      waiting: newWaiting,
+      activeCall: { ...nextItem, startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
+      history: historyUpdate.length > 0 ? [...historyUpdate, ...prev.history].slice(0, 50) : prev.history
+    }))
+    setTimerSeconds(0)
+  }
+
   const cancelTicket = (id) => {
     if (window.confirm("Deseja cancelar esta senha?")) {
       setData(prev => ({
@@ -563,7 +596,10 @@ function App() {
                     <span style={{ fontWeight: '800', fontSize: '1.4rem', color: item.tipo === 'P' ? 'var(--color-secondary)' : 'var(--text-main)' }}>{item.senha}</span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginLeft: '10px' }}><RelativeTime timestamp={item.timestamp} /></span>
                   </div>
-                  <button onClick={() => cancelTicket(item.id)} style={{ background: 'var(--bg-main)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}>✕</button>
+                   <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => callSpecificTicket(item.id)} title="Chamar esta senha agora" style={{ background: 'var(--bg-main)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}><Volume2 size={20} /></button>
+                    <button onClick={() => cancelTicket(item.id)} title="Cancelar senha" style={{ background: 'var(--bg-main)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}>✕</button>
+                  </div>
                 </div>
               )) : (
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '80px' }}>

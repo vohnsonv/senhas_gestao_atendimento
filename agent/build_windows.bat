@@ -17,14 +17,18 @@ if %errorlevel% neq 0 (
 )
 
 echo [OK] Python detectado. Instalando dependencias do pacote...
-pip install flask flask-cors pypiwin32 pyinstaller
+pip install flask flask-cors pypiwin32 pyinstaller pystray pillow requests
 
 echo.
 echo [PROCESSANDO] Gerando pacote encapsulado...
-echo Por favor aguarde, isso pode levar alguns minutos.
+echo Por favor aguarde, isso pode levar alguns minutos...
+echo.
 
 :: Compila em modo OneFile (-F) e Sem Console Escuro (-w) 
-pyinstaller -w -F --name "LabSync_PrintAgent" print_server.py
+pyinstaller -w -F --name "Mavitec_PrintAgent" ^
+    --hidden-import "pystray._win32" ^
+    --collect-all pystray ^
+    gui_app.py
 
 echo.
 echo ==========================================================

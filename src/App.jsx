@@ -126,16 +126,19 @@ function App() {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
   }
 
-  // Lógica de Sincronização e Áudio na TV
+  // Lógica de Sincronização e Áudio (TV e Painel)
   const lastCalledRef = useRef(null)
   useEffect(() => {
-    if (isPublic && data.activeCall && data.activeCall.senha !== lastCalledRef.current) {
+    if (data.activeCall && data.activeCall.senha !== lastCalledRef.current) {
       lastCalledRef.current = data.activeCall.senha
       
-      // Som Chime
-      if (data.audioSettings?.tv) {
+      const isTvAudio = isPublic && data.audioSettings?.tv;
+      const isPanelAudio = !isPublic && data.audioSettings?.panel;
+
+      if (isTvAudio || isPanelAudio) {
+        // Som Chime
         const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        chime.play().catch(e => console.log("Erro som TV:", e));
+        chime.play().catch(e => console.log("Erro áudio:", e));
 
         // Voz
         setTimeout(() => {
@@ -145,7 +148,7 @@ function App() {
         }, 800);
       }
     }
-  }, [data.activeCall, isPublic])
+  }, [data.activeCall, isPublic, data.audioSettings])
 
   const setActiveCallSync = (item) => {
     // Helper para garantir que a atualização de estado finalize o atendimento e comece o novo

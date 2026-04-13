@@ -16,6 +16,23 @@ app = Flask(__name__)
 CORS(app)
 
 IS_WINDOWS = platform.system() == "Windows"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
+
+def load_config():
+    default_config = {
+        "printer_name": "PADRAO",
+        "margin_top": 0,
+        "margin_bottom": 1,
+        "show_gui": True
+    }
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                return {**default_config, **json.load(f)}
+        except:
+            return default_config
+    return default_config
 
 if IS_WINDOWS:
     try:
@@ -148,7 +165,11 @@ def print_ticket():
     senha = data.get('senha', '000')
     tipo = data.get('tipo', 'C')
     lab = data.get('lab', 'PAINEL DE SENHAS')
+    config = load_config()
     printer_name = data.get('printer_name')
+    if not printer_name or printer_name == 'PADRAO':
+        printer_name = config.get("printer_name", "PADRAO")
+    
     is_test = data.get('is_test', False)
     data_str = data.get('data', '--/--/----')
     hora_str = data.get('hora', '--:--')
@@ -177,8 +198,12 @@ def print_ticket():
     DoubleHeightOn = GS + b'!\x01'
     DoubleSizeOff = GS + b'!\x00'
     
+    config = load_config()
+    margin_top = int(config.get("margin_top", 0))
+    margin_bottom = int(config.get("margin_bottom", 1))
+
     # Alinhamento Central Padrão
-    raw_bytes = Initialize + Center
+    raw_bytes = Initialize + (b'\n' * margin_top) + Center
     
     # Cabeçalho Personalizado (Editor)
     raw_bytes += Center + BoldOn + DoubleHeightOn + f'{cabecalho_limpo}\n'.encode('cp850', 'ignore') + DoubleSizeOff + BoldOff
@@ -206,7 +231,7 @@ def print_ticket():
     for rl in rodape_lines:
         raw_bytes += f'{rl}\n'.encode('cp850', 'ignore')
     
-    raw_bytes += b'\n' * 1 # Avanço Mínimo para a Guilhotina
+    raw_bytes += b'\n' * margin_bottom # Avanço configurável para a Guilhotina
     raw_bytes += GS + b'V\x42\x00' # Corte (V 66 0)
     raw_bytes += ESC + b'm'         # Corte (Bematech)
     

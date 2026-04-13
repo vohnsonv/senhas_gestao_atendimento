@@ -67,7 +67,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('atende_auth') === '124663')
   const [passwordInput, setPasswordInput] = useState('')
 
-  const [showSetup, setShowSetup] = useState(false)
+  const [activeTab, setActiveTab] = useState('atendimento') // 'atendimento' | 'configuracoes'
   const [showHistory, setShowHistory] = useState(false)
   const [isSpacePressed, setIsSpacePressed] = useState(false)
   const timerRef = useRef(null)
@@ -382,22 +382,22 @@ function App() {
     return (
       <div className="public-view">
         <div className="public-current">
-          <p style={{ fontSize: '4rem', opacity: 0.8, color: 'white', fontWeight: '800' }}>CHAMADO AGORA</p>
+          <p style={{ fontSize: '4rem', opacity: 0.8, color: 'var(--text-muted)', fontWeight: '800' }}>CHAMADO AGORA</p>
           <div className="public-ticket-number" style={{ fontSize: data.activeCall ? '28rem' : '15rem' }}>
             {data.activeCall ? data.activeCall.senha : '---'}
           </div>
-          <div style={{ position: 'absolute', top: '40px', right: '40px', background: 'rgba(0,0,0,0.5)', padding: '15px 30px', borderRadius: '50px', border: '1px solid var(--ocean-blue)' }}>
-             <h2 style={{ fontSize: '1.5rem', color: 'var(--ocean-blue)' }}>{data.date}</h2>
+          <div style={{ position: 'absolute', top: '40px', right: '40px', background: 'var(--bg-main)', padding: '15px 30px', borderRadius: '50px', border: '1px solid var(--glass-border)' }}>
+             <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', margin: 0 }}>{data.date}</h2>
           </div>
         </div>
         
         <div className="public-sidebar">
           <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '30px', overflow: 'hidden' }}>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '20px', color: 'var(--ocean-blue)', fontWeight: '800' }}>PRÓXIMO</h2>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '20px', color: 'var(--color-secondary)', fontWeight: '800' }}>PRÓXIMO</h2>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {data.waiting.slice(0, 1).map(item => (
                 <div key={item.id} className="public-next-item" style={{ width: '100%', padding: '30px' }}>
-                  <span style={{ fontSize: '8rem', fontWeight: '950', color: item.tipo === 'P' ? 'var(--accent-lime)' : 'var(--neon-green)' }}>{item.senha}</span>
+                  <span style={{ fontSize: '8rem', fontWeight: '950', color: item.tipo === 'P' ? 'var(--color-secondary)' : 'var(--color-primary)' }}>{item.senha}</span>
                 </div>
               ))}
               {data.waiting.length === 0 && <p style={{ opacity: 0.2, fontSize: '2rem' }}>---</p>}
@@ -431,17 +431,17 @@ function App() {
 
   if (!isPublic && !isAuthenticated) {
     return (
-      <div className="app-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#000' }}>
-         <div className="glass-card" style={{ width: '400px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
-            <Lock size={48} style={{ color: 'var(--neon-green)', margin: '0 auto 20px auto' }} />
-            <h2 style={{ color: '#fff', marginBottom: '20px' }}>ACESSO RESTRITO</h2>
+      <div className="app-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+         <div className="glass-card" style={{ width: '400px', textAlign: 'center' }}>
+            <Lock size={48} style={{ color: 'var(--color-primary)', margin: '0 auto 20px auto' }} />
+            <h2 style={{ marginBottom: '20px' }}>ACESSO RESTRITO</h2>
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <input 
                 type="password" 
                 placeholder="Insira a senha de acesso..." 
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#111', color: '#fff', fontSize: '1.2rem', textAlign: 'center' }}
+                style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-main)', color: 'var(--text-main)', fontSize: '1.2rem', textAlign: 'center' }}
                 autoFocus
               />
               <button type="submit" className="neon-btn btn-emerald" style={{ padding: '15px', fontSize: '1rem' }}>
@@ -457,48 +457,56 @@ function App() {
     <div className="app-container">
       <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h1 className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Ticket style={{ color: 'var(--ocean-blue)' }} size={42} strokeWidth={2.5} />
+            <Ticket style={{ color: 'var(--color-primary)' }} size={42} strokeWidth={2.5} />
             PAINEL DE SENHAS
           </h1>
         
         <div style={{ display: 'flex', gap: '15px' }}>
-          <a href="/?view=public" target="_blank" rel="noopener noreferrer" className="neon-btn" style={{ padding: '8px 15px', fontSize: '0.7rem', textDecoration: 'none', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--neon-green)', display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+          <button className={`tab-btn ${activeTab === 'atendimento' ? 'active' : ''}`} onClick={() => setActiveTab('atendimento')}>
+             <Ticket size={14} style={{strokeWidth: 2.5}}/> ATENDIMENTO
+          </button>
+          <button className={`tab-btn ${activeTab === 'configuracoes' ? 'active' : ''}`} onClick={() => setActiveTab('configuracoes')}>
+             <Settings size={14} style={{strokeWidth: 2.5}}/> CONFIGURAÇÕES
+          </button>
+          <a href="/?view=public" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none', color: 'var(--color-primary)', borderColor: 'var(--color-primary)' }}>
              🖥️ ABRIR TV
           </a>
-          <button className="neon-btn" onClick={() => setShowHistory(true)} style={{ padding: '8px 15px', fontSize: '0.7rem' }}>
-             <History size={14} /> HISTÓRICO
+          <button className="tab-btn" onClick={() => setShowHistory(true)}>
+             <History size={14} style={{strokeWidth: 2.5}}/> HISTÓRICO
           </button>
-          <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`} onClick={() => setShowSetup(true)} style={{ cursor: 'pointer', animation: printerOnline ? 'blinkIndicator 2s infinite' : 'none', color: printerOnline ? '#00ff88' : '' }}>
+          <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`} onClick={() => setActiveTab('configuracoes')} style={{ cursor: 'pointer', animation: printerOnline ? 'blinkIndicator 2s infinite' : 'none' }}>
             {printerOnline ? '● IMPRESSORA ONLINE' : '○ IMPRESSORA OFFLINE'}
           </div>
-          <button onClick={toggleMode} style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 15px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s' }}>
-            MODO: {data.priorityMode === 'balanced' ? '⚖️ INTERCALADO' : data.priorityMode === 'arrival_order' ? '⏱️ ORDEM DE CHEGADA' : '🔥 PRIORIDADE MÁXIMA'}
+          <button onClick={toggleMode} className="tab-btn">
+            MODO: {data.priorityMode === 'balanced' ? '⚖️ INTERCALADO' : data.priorityMode === 'arrival_order' ? '⏱️ ORDEM DE CHEGADA' : '🔥 PRIORIDADE'}
           </button>
         </div>
       </header>
 
-      <main className="terminal-section">
+      {activeTab === 'atendimento' ? (
+        <>
+          <main className="terminal-section">
         <div className="glass-card" style={{ marginBottom: '30px' }}>
           <h2>EMISSÃO DE TICKETS</h2>
           <div className="btn-container" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
             <button className="neon-btn btn-emerald" onClick={() => emitTicket('C')} style={{ padding: '25px', fontSize: '1.4rem' }}>
               <UserCheck size={40} />
-              <span>COMUM</span>
+              <span style={{ marginLeft: '15px' }}>COMUM</span>
             </button>
-            <button className="neon-btn btn-lime" onClick={() => emitTicket('P')} style={{ padding: '30px', fontSize: '1.6rem', border: '3px solid var(--accent-lime)', background: 'rgba(163, 230, 53, 0.15)' }}>
-              <Accessibility size={48} />
+            <button className="neon-btn btn-lime" onClick={() => emitTicket('P')} style={{ padding: '25px', fontSize: '1.4rem' }}>
+              <Accessibility size={40} />
               <span style={{ marginLeft: '15px' }}>PREFERENCIAL</span>
             </button>
           </div>
           {lastTicket && (
             <div style={{ position: 'absolute', top: '20px', right: '40px', textAlign: 'center' }}>
-               <p style={{ fontSize: '0.6rem', opacity: 0.5 }}>ÚLTIMO EMITIDO</p>
-               <p style={{ color: 'var(--ocean-blue)', fontWeight: '900', fontSize: '1.5rem' }}>{lastTicket}</p>
+               <p style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>ÚLTIMO EMITIDO</p>
+               <p style={{ color: 'var(--color-primary)', fontWeight: '900', fontSize: '1.5rem' }}>{lastTicket}</p>
             </div>
           )}
         </div>
 
-        <div className="glass-card" style={{ border: '2px solid rgba(14, 165, 233, 0.1)' }}>
+        <div className="glass-card" style={{ border: '2px solid rgba(27, 153, 139, 0.15)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                <Play size={18} /> PAINEL DO ATENDENTE
@@ -508,12 +516,12 @@ function App() {
           
           {data.activeCall ? (
             <div style={{ textAlign: 'center', padding: '10px' }}>
-              <p style={{ opacity: 0.5, fontSize: '1.2rem' }}>EM ATENDIMENTO AGORA</p>
-              <h3 style={{ fontSize: '8rem', lineHeight: '1', margin: '15px 0', color: 'var(--ocean-blue)', textShadow: '0 0 50px rgba(16, 185, 129, 0.3)' }}>{data.activeCall.senha}</h3>
-              <p style={{ opacity: 0.7, marginTop: '5px', fontSize: '1rem' }}>Iniciado às {data.activeCall.startTime}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: 600 }}>EM ATENDIMENTO AGORA</p>
+              <h3 style={{ fontSize: '8rem', lineHeight: '1', margin: '15px 0', color: 'var(--color-primary)' }}>{data.activeCall.senha}</h3>
+              <p style={{ color: 'var(--text-muted)', marginTop: '5px', fontSize: '1rem' }}>Iniciado às {data.activeCall.startTime}</p>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px', opacity: 0.3 }}>Aguardando próxima chamada...</div>
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Aguardando próxima chamada...</div>
           )}
 
           <div style={{ display: 'flex', gap: '15px' }}>
@@ -526,8 +534,8 @@ function App() {
                 style={{ 
                   width: '100%', 
                   flex: 1, 
-                  backgroundColor: '#00ff88', 
-                  color: '#000', 
+                  backgroundColor: 'var(--color-secondary)', 
+                  color: '#fff', 
                   fontWeight: 'bold', 
                   fontSize: '1.2rem', 
                   padding: '24px', 
@@ -549,17 +557,17 @@ function App() {
            <h2>FILA DE ESPERA ({data.waiting.length})</h2>
            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '30px' }}>
               {data.waiting.length > 0 ? data.waiting.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--glass-border)' }}>
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                    {item.tipo === 'P' ? <Accessibility size={24} style={{ color: 'var(--accent-lime)'}} /> : <UserCheck size={24} style={{ color: 'rgba(255,255,255,0.2)'}} />}
-                    <span style={{ fontWeight: '800', fontSize: '1.4rem', color: item.tipo === 'P' ? 'var(--accent-lime)' : 'var(--neon-green)' }}>{item.senha}</span>
-                    <span style={{ opacity: 0.5, fontSize: '0.9rem', marginLeft: '10px' }}><RelativeTime timestamp={item.timestamp} /></span>
+                    {item.tipo === 'P' ? <Accessibility size={24} style={{ color: 'var(--color-secondary)'}} /> : <UserCheck size={24} style={{ color: 'var(--text-muted)'}} />}
+                    <span style={{ fontWeight: '800', fontSize: '1.4rem', color: item.tipo === 'P' ? 'var(--color-secondary)' : 'var(--text-main)' }}>{item.senha}</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginLeft: '10px' }}><RelativeTime timestamp={item.timestamp} /></span>
                   </div>
-                  <button onClick={() => cancelTicket(item.id)} style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}>✕</button>
+                  <button onClick={() => cancelTicket(item.id)} style={{ background: 'var(--bg-main)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}>✕</button>
                 </div>
               )) : (
-                <div style={{ textAlign: 'center', opacity: 0.4, marginTop: '80px' }}>
-                  <CheckCircle2 size={64} style={{ margin: '0 auto', marginBottom: '20px', color: 'var(--neon-green)' }} />
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '80px' }}>
+                  <CheckCircle2 size={64} style={{ margin: '0 auto', marginBottom: '20px', color: 'var(--color-primary)', opacity: 0.5 }} />
                   <p style={{ fontSize: '1.2rem' }}>Tudo limpo!<br/>Nenhum paciente aguardando.</p>
                 </div>
               )}
@@ -567,13 +575,105 @@ function App() {
 
         </div>
       </aside>
+        </>
+      ) : (
+        <main className="glass-card" style={{ gridColumn: '1 / -1', padding: '40px', overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+             <Settings size={32} style={{ color: 'var(--color-primary)' }} />
+             <h2 style={{ margin: 0 }}>CONFIGURAÇÕES DO SISTEMA</h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1.5fr) minmax(300px, 1fr)', gap: '30px' }}>
+            {/* Esquerda: Configurações de Impressão */}
+            <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+              <h3 style={{ color: 'var(--color-primary)', marginBottom: '25px', fontSize: '1.2rem' }}>🖨️ Editor de Impressão e Comunicação</h3>
+              
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Endereço Local Print Agent (.EXE)</label>
+              <input 
+                type="text" 
+                value={printNodeUrl} 
+                onChange={(e) => setPrintNodeUrl(e.target.value)}
+                placeholder="Ex: http://127.0.0.1:5000"
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', fontSize: '1rem' }}
+              />
+
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Selecionar Impressora Instalada</label>
+              <select 
+                value={selectedPrinter || ''} 
+                onChange={(e) => handleSelectPrinter(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', fontSize: '1rem', cursor: 'pointer' }}
+              >
+                <option value="">-- Padrão do Sistema --</option>
+                {printers.map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Cabeçalho do Ticket</label>
+              <input 
+                type="text" 
+                value={printerHeader} 
+                onChange={(e) => setPrinterHeader(e.target.value)}
+                placeholder="Ex: LADES LABORATORIO"
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', fontSize: '1rem' }}
+              />
+
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Mensagem de Rodapé (Agradecimento / Insta)</label>
+              <textarea 
+                value={printerFooter} 
+                onChange={(e) => setPrinterFooter(e.target.value)}
+                placeholder="Ex: Obrigado por escolher o laboratório..."
+                rows="4"
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', resize: 'vertical', fontSize: '1rem', fontFamily: 'inherit' }}
+              />
+              <button 
+                className="neon-btn btn-lime" 
+                onClick={testPrint}
+                style={{ width: '100%', marginTop: '10px', fontSize: '1rem', padding: '15px' }}
+              >
+                TESTAR IMPRESSÃO & CORTE
+              </button>
+            </div>
+
+            {/* Direita: Downloads e Dependências */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '10px' }}>📥 Backend Dependente</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>Certifique-se de que a ponte de comunicação (print_server.py ou Agente.exe) está rodando localmente (normalmente porta 5000), caso contrário as impressões falharão.</p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <a href="https://www.python.org/downloads/" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none', fontSize: '0.8rem', flex: 1, textAlign: 'center', justifyContent: 'center' }}>
+                    BAIXAR PYTHON
+                  </a>
+                </div>
+              </div>
+
+              <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
+                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '15px', fontSize: '1.2rem' }}>📥 Downloads & Drivers</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>Baixe as pontes de comunicação e os drivers da impressora POS-80.</p>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <a href="/drivers_pos80.zip" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', justifyContent: 'center' }}>
+                    🖨️ DRIVERS POS-80
+                  </a>
+                  <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>
+                    🪟 BRIDGE INSTALLER (.EXE)
+                  </a>
+                  <a href="/print_server.py" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', justifyContent: 'center' }}>
+                    🐧 BRIDGE SCRIPT LINUX (.PY)
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
 
       {showHistory && (
         <div className="modal-overlay" onClick={() => setShowHistory(false)}>
           <div className="modal-content" style={{ maxWidth: '900px' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><History size={24} /> HISTÓRICO DE ATENDIMENTOS</h2>
-              <button className="neon-btn" onClick={() => setShowHistory(false)} style={{ background: '#111', padding: '10px 20px' }}>FECHAR</button>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}><History size={24} /> HISTÓRICO DE ATENDIMENTOS</h2>
+              <button className="tab-btn" onClick={() => setShowHistory(false)}>FECHAR</button>
             </div>
             <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
               <table className="attendance-table">
@@ -589,101 +689,15 @@ function App() {
                   {data.history.map((row, i) => (
                     <tr key={i}>
                       <td><span className={`status-badge ${row.tipo === 'P' ? 'status-priority' : 'status-common'}`}>{row.senha}</span></td>
-                      <td style={{ fontSize: '0.9rem', opacity: 0.7 }}>{row.startTime}</td>
-                      <td style={{ fontSize: '0.9rem', opacity: 0.7 }}>{row.endTime}</td>
-                      <td style={{ fontWeight: '700', color: '#10b981' }}>{row.duration}</td>
+                      <td style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{row.startTime}</td>
+                      <td style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{row.endTime}</td>
+                      <td style={{ fontWeight: '700', color: 'var(--color-primary)' }}>{row.duration}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {data.history.length === 0 && <p style={{ textAlign: 'center', opacity: 0.3, padding: '40px' }}>Nenhum atendimento realizado hoje.</p>}
+              {data.history.length === 0 && <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>Nenhum atendimento realizado hoje.</p>}
             </div>
-          </div>
-        </div>
-      )}
-
-      {showSetup && (
-        <div className="modal-overlay" onClick={() => setShowSetup(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 style={{ color: '#fff', marginBottom: '20px' }}>PAINEL DE SENHAS Print Node 🖨️</h2>
-            <div className="setup-step" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px', marginBottom: '15px' }}>
-              <h3 style={{ color: 'var(--neon-green)', marginBottom: '15px' }}>🖨️ Configurar Editor de Impressão</h3>
-              
-              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Endereço do Print Agent (.EXE)</label>
-              <input 
-                type="text" 
-                value={printNodeUrl} 
-                onChange={(e) => setPrintNodeUrl(e.target.value)}
-                placeholder="Ex: http://127.0.0.1:5000"
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#111', color: '#fff', border: '1px solid #444', marginBottom: '15px' }}
-              />
-
-              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Selecionar Impressora</label>
-              <select 
-                value={selectedPrinter || ''} 
-                onChange={(e) => handleSelectPrinter(e.target.value)}
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#000', color: '#fff', border: '1px solid var(--neon-green)', marginBottom: '15px' }}
-              >
-                <option value="">-- Padrão do Sistema --</option>
-                {printers.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-
-              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Cabeçalho do Ticket</label>
-              <input 
-                type="text" 
-                value={printerHeader} 
-                onChange={(e) => setPrinterHeader(e.target.value)}
-                placeholder="Ex: LADES LABORATORIO"
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#111', color: '#fff', border: '1px solid #444', marginBottom: '15px' }}
-              />
-
-              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Mensagem de Rodapé</label>
-              <textarea 
-                value={printerFooter} 
-                onChange={(e) => setPrinterFooter(e.target.value)}
-                placeholder="Ex: Obrigado por escolher o laboratório..."
-                rows="3"
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#111', color: '#fff', border: '1px solid #444', marginBottom: '15px', resize: 'vertical' }}
-              />
-              <button 
-                className="neon-btn btn-emerald" 
-                onClick={testPrint}
-                style={{ width: '100%', marginTop: '10px', fontSize: '0.8rem' }}
-              >
-                TESTAR IMPRESSÃO & CORTE
-              </button>
-            </div>
-
-            <div className="setup-step" style={{ padding: '20px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '16px' }}>
-              <h3 style={{ color: '#fff' }}>📥 Backend (Python)</h3>
-              <p style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '10px' }}>Certifique-se que o script print_server.py está rodando na porta 5000.</p>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <a href="https://www.python.org/downloads/" target="_blank" className="neon-btn" style={{ textDecoration: 'none', fontSize: '0.7rem', background: '#222' }}>
-                  BAIXAR PYTHON
-                </a>
-              </div>
-            </div>
-
-            <div className="setup-step" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px', marginTop: '15px', textAlign: 'center' }}>
-              <h3 style={{ color: 'var(--neon-green)', marginBottom: '15px' }}>📥 Central de Instalação e Drivers</h3>
-              <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '15px' }}>Baixe as pontes de comunicação e os drivers da impressora.</p>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <a href="/drivers_pos80.zip" download className="neon-btn" style={{ padding: '15px', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
-                  🖨️ DRIVERS POS80
-                </a>
-                <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>
-                  🪟 BRIDGE WINDOWS
-                </a>
-                <a href="/print_server.py" download className="neon-btn" style={{ padding: '15px', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
-                  🐧 BRIDGE LINUX
-                </a>
-              </div>
-            </div>
-
-            <button className="neon-btn" onClick={() => setShowSetup(false)} style={{ marginTop: '20px', width: '100%', background: '#111', color: '#fff' }}>FECHAR PAINEL DE CONFIGURAÇÕES</button>
           </div>
         </div>
       )}

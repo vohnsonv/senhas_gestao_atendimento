@@ -656,15 +656,18 @@ function App() {
             </div>
 
             <div className="setup-step" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px', marginTop: '15px', textAlign: 'center' }}>
-              <h3 style={{ color: 'var(--neon-green)', marginBottom: '15px' }}>📥 Central de Instalação (Windows)</h3>
-              <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '15px' }}>Baixe o Instalador Automático da Ponte de Comunicação ou o pacote de Drivers brutos USB.</p>
+              <h3 style={{ color: 'var(--neon-green)', marginBottom: '15px' }}>📥 Central de Instalação e Drivers</h3>
+              <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '15px' }}>Baixe as pontes de comunicação e os drivers da impressora.</p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '15px', textDecoration: 'none', fontWeight: 'bold' }}>
-                  📦 INSTALADOR PASSO A PASSO (.EXE)
+                <a href="/drivers_pos80.zip" download className="neon-btn" style={{ padding: '15px', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
+                  🖨️ DRIVERS POS80
                 </a>
-                <a href="/drivers_pos80.zip" download className="neon-btn" style={{ padding: '10px', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '0.8rem' }}>
-                  Baixar Pasta de Drivers ZIP (Zjiang)
+                <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>
+                  🪟 BRIDGE WINDOWS
+                </a>
+                <a href="/print_server.py" download className="neon-btn" style={{ padding: '15px', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
+                  🐧 BRIDGE LINUX
                 </a>
               </div>
             </div>

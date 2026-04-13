@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter, Lock, Accessibility, CheckCircle2, Volume2 } from 'lucide-react'
+import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter, Lock, Accessibility, CheckCircle2, Volume2, Info } from 'lucide-react'
+import packageJson from '../package.json'
 import './App.css'
 
 const STORAGE_KEY = 'atende_org_data_v2'
@@ -734,7 +735,10 @@ function App() {
         </div>
       )}
 
-      {/* Footer removido a pedido do usuário */}
+      <footer style={{ gridColumn: '1 / -1', marginTop: '30px', padding: '20px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', opacity: 0.6 }}>
+        <Info size={14} />
+        <span>MAVITEC SENHAS • VERSÃO {packageJson.version} • PRODUÇÃO</span>
+      </footer>
     </div>
   )
 }

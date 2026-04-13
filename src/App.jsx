@@ -451,6 +451,9 @@ function App() {
           </h1>
         
         <div style={{ display: 'flex', gap: '15px' }}>
+          <a href="/?view=public" target="_blank" rel="noopener noreferrer" className="neon-btn" style={{ padding: '8px 15px', fontSize: '0.7rem', textDecoration: 'none', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--neon-green)', display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+             🖥️ ABRIR TV
+          </a>
           <button className="neon-btn" onClick={() => setShowHistory(true)} style={{ padding: '8px 15px', fontSize: '0.7rem' }}>
              <History size={14} /> HISTÓRICO
           </button>

@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  labsync-senhas:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    container_name: labsync-senhas
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.senhas-labsync.rule=Host(`senhas.labsync.com.br`)"
+      - "traefik.http.routers.senhas-labsync.entrypoints=websecure"
+      - "traefik.http.routers.senhas-labsync.tls.certresolver=letsencrypt"
+      - "traefik.http.services.senhas-labsync.loadbalancer.server.port=80"
+
+networks:
+  proxy:
+    external: true

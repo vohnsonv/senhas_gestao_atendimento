@@ -6,3 +6,9 @@ dist/
 *.log
 venv/
 __pycache__/
+infra/index.html_backup
+resources/drivers/
+agent/build/
+agent/dist/
+agent/__pycache__/
+agent/venv/

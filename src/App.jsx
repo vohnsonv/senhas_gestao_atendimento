@@ -30,7 +30,8 @@ function App() {
       history: [],
       p_streak: 0,
       priorityMode: 'balanced', // 'balanced' or 'priority_only'
-      activeCall: null
+      activeCall: null,
+      audioSettings: { tv: true, panel: true }
     }
 
     try {
@@ -132,13 +133,17 @@ function App() {
       lastCalledRef.current = data.activeCall.senha
       
       // Som Chime
-      const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-      chime.play().catch(e => console.log("Erro som TV:", e));
+      if (data.audioSettings?.tv) {
+        const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        chime.play().catch(e => console.log("Erro som TV:", e));
 
-      // Voz
-      const msg = new SpeechSynthesisUtterance(`Senha ${data.activeCall.senha}, favor comparecer.`);
-      msg.lang = 'pt-BR';
-      window.speechSynthesis.speak(msg);
+        // Voz
+        setTimeout(() => {
+          const msg = new SpeechSynthesisUtterance(`Senha ${data.activeCall.senha}, favor comparecer.`);
+          msg.lang = 'pt-BR';
+          window.speechSynthesis.speak(msg);
+        }, 800);
+      }
     }
   }, [data.activeCall, isPublic])
 
@@ -195,12 +200,14 @@ function App() {
         setData(prev => {
           // Dispara som caso seja a visão Pública (TV) e tenha havido uma Nova Chamada.
           if (isPublic && parsed.activeCall && (!prev.activeCall || parsed.activeCall.id !== prev.activeCall.id)) {
-            try {
-              // Som de "Airport Chime" / Chamada no painel principal
-              const tvChime = new Audio('https://assets.mixkit.co/active_storage/sfx/2800/2800-preview.mp3')
-              tvChime.volume = 1.0
-              tvChime.play().catch(err => console.log('Interaja com a tela uma vez para habilitar o áudio automático'))
-            } catch(err) {}
+            if (parsed.audioSettings?.tv) {
+              try {
+                // Som de "Airport Chime" / Chamada no painel principal
+                const tvChime = new Audio('https://assets.mixkit.co/active_storage/sfx/2800/2800-preview.mp3')
+                tvChime.volume = 1.0
+                tvChime.play().catch(err => console.log('Interaja com a tela uma vez para habilitar o áudio automático'))
+              } catch(err) {}
+            }
           }
           return parsed
         })
@@ -301,11 +308,13 @@ function App() {
 
   const callNext = () => {
     // Sound Feedback Local (Feedback Suave Atendente)
-    try {
-      const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
-      clickSound.volume = 0.4
-      clickSound.play()
-    } catch(e) {}
+    if (data.audioSettings?.panel) {
+      try {
+        const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
+        clickSound.volume = 0.4
+        clickSound.play()
+      } catch(e) {}
+    }
 
     if (data.waiting.length === 0) {
       if (data.activeCall) {
@@ -385,11 +394,13 @@ function App() {
 
   const callSpecificTicket = (id) => {
     // Sound Feedback Local
-    try {
-      const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
-      clickSound.volume = 0.4
-      clickSound.play()
-    } catch(e) {}
+    if (data.audioSettings?.panel) {
+      try {
+        const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
+        clickSound.volume = 0.4
+        clickSound.play()
+      } catch(e) {}
+    }
 
     const index = data.waiting.findIndex(item => item.id === id)
     if (index === -1) return
@@ -423,26 +434,36 @@ function App() {
     }))
   }
 
+  const toggleAudio = (target) => {
+    setData(prev => ({
+      ...prev,
+      audioSettings: {
+        ...prev.audioSettings,
+        [target]: !prev.audioSettings[target]
+      }
+    }))
+  }
+
   if (isPublic) {
     return (
       <div className="public-view">
         <div className="public-current">
-          <p style={{ fontSize: '4rem', opacity: 0.8, color: 'var(--text-muted)', fontWeight: '800' }}>CHAMADO AGORA</p>
-          <div className="public-ticket-number" style={{ fontSize: data.activeCall ? '28rem' : '15rem' }}>
+          <p style={{ fontSize: 'clamp(2rem, 5vh, 4rem)', opacity: 0.8, color: 'var(--text-muted)', fontWeight: '800', margin: 0 }}>CHAMADO AGORA</p>
+          <div className="public-ticket-number">
             {data.activeCall ? data.activeCall.senha : '---'}
           </div>
-          <div style={{ position: 'absolute', top: '40px', right: '40px', background: 'var(--bg-main)', padding: '15px 30px', borderRadius: '50px', border: '1px solid var(--glass-border)' }}>
-             <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', margin: 0 }}>{data.date}</h2>
+          <div style={{ position: 'absolute', top: 'clamp(20px, 3vh, 40px)', right: 'clamp(20px, 3vh, 40px)', background: 'var(--bg-main)', padding: '10px 25px', borderRadius: '50px', border: '1px solid var(--glass-border)' }}>
+             <h2 style={{ fontSize: 'clamp(1rem, 2vh, 1.5rem)', color: 'var(--color-primary)', margin: 0 }}>{data.date}</h2>
           </div>
         </div>
         
         <div className="public-sidebar">
-          <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '30px', overflow: 'hidden' }}>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '20px', color: 'var(--color-secondary)', fontWeight: '800' }}>PRÓXIMO</h2>
+          <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 'clamp(15px, 2vh, 30px)', overflow: 'hidden' }}>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 3vh, 2.5rem)', marginBottom: '15px', color: 'var(--color-secondary)', fontWeight: '800' }}>PRÓXIMO</h2>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {data.waiting.slice(0, 1).map(item => (
-                <div key={item.id} className="public-next-item" style={{ width: '100%', padding: '30px' }}>
-                  <span style={{ fontSize: '8rem', fontWeight: '950', color: item.tipo === 'P' ? 'var(--color-secondary)' : 'var(--color-primary)' }}>{item.senha}</span>
+                <div key={item.id} className="public-next-item" style={{ width: '100%', padding: 'clamp(15px, 2vh, 30px)' }}>
+                  <span style={{ fontSize: 'clamp(4rem, 10vh, 10rem)', fontWeight: '950', color: item.tipo === 'P' ? 'var(--color-secondary)' : 'var(--color-primary)' }}>{item.senha}</span>
                 </div>
               ))}
               {data.waiting.length === 0 && <p style={{ opacity: 0.2, fontSize: '2rem' }}>---</p>}
@@ -500,20 +521,20 @@ function App() {
 
   return (
     <div className="app-container">
-      <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--header-mb)' }}>
-          <h1 className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+      <header className="main-header">
+          <h1 className="hero-title">
             <Ticket style={{ color: 'var(--color-primary)' }} size={42} strokeWidth={2.5} />
             PAINEL DE SENHAS
           </h1>
         
-        <div style={{ display: 'flex', gap: '15px' }}>
+        <div className="header-actions">
           <button className={`tab-btn ${activeTab === 'atendimento' ? 'active' : ''}`} onClick={() => setActiveTab('atendimento')}>
              <Ticket size={14} style={{strokeWidth: 2.5}}/> ATENDIMENTO
           </button>
           <button className={`tab-btn ${activeTab === 'configuracoes' ? 'active' : ''}`} onClick={() => setActiveTab('configuracoes')}>
              <Settings size={14} style={{strokeWidth: 2.5}}/> CONFIGURAÇÕES
           </button>
-          <a href="/?view=public" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none', color: 'var(--color-primary)', borderColor: 'var(--color-primary)' }}>
+          <a href="/?view=public" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none' }}>
              🖥️ ABRIR TV
           </a>
           <button className="tab-btn" onClick={() => setShowHistory(true)}>
@@ -533,38 +554,39 @@ function App() {
           <main className="terminal-section">
         <div className="glass-card" style={{ marginBottom: 'var(--grid-gap)' }}>
           <h2>EMISSÃO DE TICKETS</h2>
-          <div className="btn-container" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
-            <button className="neon-btn btn-emerald" onClick={() => emitTicket('C')} style={{ padding: '25px', fontSize: '1.4rem' }}>
+          <div className="btn-container">
+            <button className="neon-btn btn-emerald ticket-emit-btn" onClick={() => emitTicket('C')}>
               <UserCheck size={40} />
-              <span style={{ marginLeft: '15px' }}>COMUM</span>
+              <span>COMUM</span>
             </button>
-            <button className="neon-btn btn-lime" onClick={() => emitTicket('P')} style={{ padding: '25px', fontSize: '1.4rem' }}>
+            <button className="neon-btn btn-lime ticket-emit-btn" onClick={() => emitTicket('P')}>
               <Accessibility size={40} />
-              <span style={{ marginLeft: '15px' }}>PREFERENCIAL</span>
+              <span>PREFERENCIAL</span>
             </button>
           </div>
         </div>
 
-        <div className="glass-card" style={{ border: '2px solid rgba(27, 153, 139, 0.15)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="glass-card atendente-card">
+          <div className="atendente-header">
+             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
                <Play size={18} /> PAINEL DO ATENDENTE
              </h2>
              {data.activeCall && <div className="active-timer"><Clock size={16} /> {formatTime(timerSeconds)}</div>}
           </div>
           
           {data.activeCall ? (
-            <div style={{ textAlign: 'center', padding: '10px' }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>EM ATENDIMENTO AGORA</p>
-              <h3 style={{ fontSize: 'clamp(5rem, 18vh, 9rem)', lineHeight: '1', margin: '15px 0', color: 'var(--color-primary)' }}>{data.activeCall.senha}</h3>
-              <p style={{ color: 'var(--text-muted)', marginTop: '5px', fontSize: '0.9rem' }}>Iniciado às {data.activeCall.startTime}</p>
+            <div className="atendente-display">
+              <p style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600, margin: 0 }}>EM ATENDIMENTO AGORA</p>
+              <h3 className="atendente-password">{data.activeCall.senha}</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0 }}>Iniciado às {data.activeCall.startTime}</p>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Aguardando próxima chamada...</div>
+            <div className="atendente-display" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>Aguardando próxima chamada...</div>
           )}
 
           <div style={{ display: 'flex', gap: '15px' }}>
              <button 
+                className="neon-btn btn-lime"
                 onClick={() => {
                   setIsSpacePressed(true)
                   callNext()
@@ -573,17 +595,9 @@ function App() {
                 style={{ 
                   width: '100%', 
                   flex: 1, 
-                  backgroundColor: 'var(--color-secondary)', 
-                  color: '#fff', 
-                  fontWeight: 'bold', 
-                  fontSize: '1.2rem', 
-                  padding: '24px', 
-                  borderRadius: '12px',
-                  border: 'none',
-                  cursor: 'pointer',
+                  padding: '18px', 
+                  fontSize: '1.1rem',
                   animation: isSpacePressed ? 'flashPulse 0.2s ease-out' : 'none',
-                  transform: isSpacePressed ? 'scale(0.98)' : 'scale(1)',
-                  transition: 'transform 0.1s'
                 }}>
                CHAMAR PRÓXIMO (Espaço) 🔊
              </button>
@@ -591,8 +605,8 @@ function App() {
         </div>
       </main>
 
-      <aside className="queue-section" style={{ height: 'calc(100vh - 120px)' }}>
-        <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+      <aside className="queue-aside">
+        <div className="glass-card">
            {lastTicket && (
               <div className="sticky-last-ticket">
                 <div className="label">
@@ -604,24 +618,24 @@ function App() {
                 <div className="value">{lastTicket}</div>
               </div>
            )}
-           <h2 style={{ padding: lastTicket ? '0' : '0 0 20px 0', marginBottom: '10px' }}>FILA DE ESPERA ({data.waiting.length})</h2>
-           <div style={{ flex: 1, overflowY: 'auto', marginBottom: '30px' }}>
+           <h2 style={{ padding: lastTicket ? '0' : '0 0 10px 0', marginBottom: '10px' }}>FILA DE ESPERA ({data.waiting.length})</h2>
+           <div className="queue-list">
               {data.waiting.length > 0 ? data.waiting.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--glass-border)' }}>
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--glass-border)' }}>
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                     {item.tipo === 'P' ? <Accessibility size={24} style={{ color: 'var(--color-secondary)'}} /> : <UserCheck size={24} style={{ color: 'var(--text-muted)'}} />}
-                    <span style={{ fontWeight: '800', fontSize: '1.4rem', color: item.tipo === 'P' ? 'var(--color-secondary)' : 'var(--text-main)' }}>{item.senha}</span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginLeft: '10px' }}><RelativeTime timestamp={item.timestamp} /></span>
+                    <span style={{ fontWeight: '800', fontSize: '1.3rem', color: item.tipo === 'P' ? 'var(--color-secondary)' : 'var(--text-main)' }}>{item.senha}</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '5px' }}><RelativeTime timestamp={item.timestamp} /></span>
                   </div>
                    <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => callSpecificTicket(item.id)} title="Chamar esta senha agora" style={{ background: 'var(--bg-main)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}><Volume2 size={20} /></button>
-                    <button onClick={() => cancelTicket(item.id)} title="Cancelar senha" style={{ background: 'var(--bg-main)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}>✕</button>
+                    <button onClick={() => callSpecificTicket(item.id)} title="Chamar esta senha agora" style={{ background: 'var(--bg-main)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', borderRadius: '12px', width: '38px', height: '38px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}><Volume2 size={18} /></button>
+                    <button onClick={() => cancelTicket(item.id)} title="Cancelar senha" style={{ background: 'var(--bg-main)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '38px', height: '38px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}>✕</button>
                   </div>
                 </div>
               )) : (
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '80px' }}>
-                  <CheckCircle2 size={64} style={{ margin: '0 auto', marginBottom: '20px', color: 'var(--color-primary)', opacity: 0.5 }} />
-                  <p style={{ fontSize: '1.2rem' }}>Tudo limpo!<br/>Nenhum paciente aguardando.</p>
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '40px' }}>
+                  <CheckCircle2 size={48} style={{ margin: '0 auto', marginBottom: '15px', color: 'var(--color-primary)', opacity: 0.5 }} />
+                  <p style={{ fontSize: '1rem' }}>Tudo limpo!<br/>Nenhum paciente aguardando.</p>
                 </div>
               )}
            </div>
@@ -689,11 +703,59 @@ function App() {
               </button>
             </div>
 
+            {/* Centro: Controle de Áudio */}
+            <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+              <h3 style={{ color: 'var(--color-secondary)', marginBottom: '25px', fontSize: '1.2rem' }}>🔊 Gerenciamento de Áudio</h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div 
+                  className="audio-card"
+                  onClick={() => toggleAudio('tv')}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: 'var(--bg-surface)', borderRadius: '12px', cursor: 'pointer', border: data.audioSettings?.tv ? '1px solid var(--color-secondary)' : '1px solid var(--glass-border)', transition: 'all 0.2s' }}
+                >
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: data.audioSettings?.tv ? 'rgba(0, 243, 255, 0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <Volume2 size={20} style={{ color: data.audioSettings?.tv ? 'var(--color-secondary)' : 'var(--text-muted)' }} />
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>Sons na TV (Visão Pública)</p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ativa bipe e voz de chamada na TV.</p>
+                    </div>
+                  </div>
+                  <div className={`mode-indicator ${data.audioSettings?.tv ? 'active' : ''}`} style={{ width: '20px', height: '20px' }}></div>
+                </div>
+
+                <div 
+                  className="audio-card"
+                  onClick={() => toggleAudio('panel')}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: 'var(--bg-surface)', borderRadius: '12px', cursor: 'pointer', border: data.audioSettings?.panel ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)', transition: 'all 0.2s' }}
+                >
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: data.audioSettings?.panel ? 'rgba(0, 255, 149, 0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <Accessibility size={20} style={{ color: data.audioSettings?.panel ? 'var(--color-primary)' : 'var(--text-muted)' }} />
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>Sons no Painel (Atendente)</p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ativa bipe de confirmação no painel local.</p>
+                    </div>
+                  </div>
+                  <div className={`mode-indicator ${data.audioSettings?.panel ? 'active' : ''}`} style={{ width: '20px', height: '20px' }}></div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '25px', padding: '15px', background: 'rgba(0, 243, 255, 0.05)', borderRadius: '12px', border: '1px dashed var(--color-primary)', display: 'flex', gap: '10px' }}>
+                <Info size={16} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                  Nota: A TV deve ter foco (clique uma vez na tela da TV) para que o navegador permita a reprodução automática de áudio.
+                </p>
+              </div>
+            </div>
+
             {/* Direita: Downloads e Dependências */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
                 <h3 style={{ color: 'var(--color-secondary)', marginBottom: '10px' }}>🌐 Dica de Redes & Segurança</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>Para imprimir corretamente em Windows/Linux, habilite o <b>"Conteúdo Inseguro"</b> no cadeado do navegador para este site (HTTPS -> HTTP).</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>Para imprimir corretamente em Windows/Linux, habilite o <b>"Conteúdo Inseguro"</b> no cadeado do navegador para este site (HTTPS para HTTP).</p>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <a href="https://bit.ly/40LAD3S" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none', fontSize: '0.8rem', flex: 1, textAlign: 'center', justifyContent: 'center' }}>
                     COMO HABILITAR?

@@ -181,10 +181,8 @@ def print_ticket():
     raw_bytes = Initialize + Center
     
     # Cabeçalho Personalizado (Editor)
-    raw_bytes += b'\n'
     raw_bytes += Center + BoldOn + DoubleHeightOn + f'{cabecalho_limpo}\n'.encode('cp850', 'ignore') + DoubleSizeOff + BoldOff
-    raw_bytes += b'==============================\n'
-    raw_bytes += b'\n'
+    raw_bytes += b'------------------------------\n'
     
     if is_test:
         raw_bytes += QuadrupleSizeOn + b'TESTE\n' + DoubleSizeOff
@@ -193,27 +191,22 @@ def print_ticket():
     else:
         tipo_text = "PREFERENCIAL" if tipo == 'P' else "COMUM"
         # Título principal da senha
-        raw_bytes += BoldOn + 'SENHA DE\n'.encode('cp850')
-        raw_bytes += f'ATENDIMENTO {tipo_text}\n'.encode('cp850') + BoldOff
-        raw_bytes += b'\n'
+        raw_bytes += BoldOn + f'SENHA {tipo_text}\n'.encode('cp850') + BoldOff
         # Senha em tamanho MEGA (Quadruple)
         raw_bytes += QuadrupleSizeOn + senha.encode('cp850') + DoubleSizeOff + b'\n'
-        raw_bytes += f'       {emoji}\n'.encode('cp850', 'ignore')
-        raw_bytes += b'\n'
-        raw_bytes += b'==============================\n'
+        raw_bytes += f'   {emoji}\n'.encode('cp850', 'ignore')
+        raw_bytes += b'------------------------------\n'
         
         # Metadata alinhada a esquerda
         raw_bytes += ESC + b'a\x00' # Esquerda
-        raw_bytes += f'{data_str} - {hora_str}\n'.encode('cp850')
-        raw_bytes += BoldOn + f'Tempo de Espera: ~{espera_min} min\n'.encode('cp850') + BoldOff
-        raw_bytes += b'\n'
+        raw_bytes += f'{data_str} {hora_str} | Espera: ~{espera_min}m\n'.encode('cp850')
     
     # Rodapé Personalizado (Editor)
     raw_bytes += Center
     for rl in rodape_lines:
         raw_bytes += f'{rl}\n'.encode('cp850', 'ignore')
     
-    raw_bytes += b'\n' * 4 # Avanço
+    raw_bytes += b'\n' * 1 # Avanço Mínimo para a Guilhotina
     raw_bytes += GS + b'V\x42\x00' # Corte (V 66 0)
     raw_bytes += ESC + b'm'         # Corte (Bematech)
     

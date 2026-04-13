@@ -2,8 +2,15 @@ import os
 import sys
 import platform
 import json
+import unicodedata
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+def remove_accents(input_str):
+    if not isinstance(input_str, str):
+        return input_str
+    nfkd_form = unicodedata.normalize('NFKD', input_str)
+    return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
 app = Flask(__name__)
 CORS(app)
@@ -111,6 +118,14 @@ def print_ticket():
     espera_min = data.get('espera', 5)
     emoji = data.get('emoji', ':)')
     
+    # Extração de meta do painel do novo UX
+    cabecalho = data.get('cabecalho', 'LADES LABORATORIO')
+    rodape = data.get('rodape', 'Obrigado por escolher o Lades Laboratorio.\nAguarde sua senha no painel.')
+
+    # Sanitização contra Thermal Bugging (Remover acentos)
+    cabecalho_limpo = remove_accents(cabecalho)
+    rodape_lines = [remove_accents(line) for line in rodape.split('\n')]
+    
     # Comandos ESC/POS
     ESC = b'\x1b'
     GS = b'\x1d'
@@ -125,33 +140,41 @@ def print_ticket():
     DoubleHeightOn = GS + b'!\x01'
     DoubleSizeOff = GS + b'!\x00'
     
-    # Caracteres de borda CP850
+    # Alinhamento Central Padrão
     raw_bytes = Initialize + Center
     
-    # Cabeçalho decorado
-    raw_bytes += b'\xc9' + b'\xcd' * 30 + b'\xbb\n'
-    raw_bytes += b'\xba' + Center + BoldOn + DoubleHeightOn + b'  PAINEL DE SENHAS  '.encode('cp850') + DoubleSizeOff + b'\xba\n'
-    raw_bytes += b'\xc8' + b'\xcd' * 30 + b'\xbc\n'
+    # Cabeçalho Personalizado (Editor)
+    raw_bytes += b'\n'
+    raw_bytes += Center + BoldOn + DoubleHeightOn + f'{cabecalho_limpo}\n'.encode('cp850', 'ignore') + DoubleSizeOff + BoldOff
+    raw_bytes += b'==============================\n'
     raw_bytes += b'\n'
     
     if is_test:
         raw_bytes += QuadrupleSizeOn + b'TESTE\n' + DoubleSizeOff
         raw_bytes += b'GUILHOTINA OK?\n'
-        raw_bytes += b'--------------------------------\n'
+        raw_bytes += b'==============================\n'
     else:
         tipo_text = "PREFERENCIAL" if tipo == 'P' else "COMUM"
-        raw_bytes += DoubleHeightOn + b'ATENDIMENTO ' + tipo_text.encode('cp850') + DoubleSizeOff + b'\n'
+        # Título principal da senha
+        raw_bytes += BoldOn + 'SENHA DE\n'.encode('cp850')
+        raw_bytes += f'ATENDIMENTO {tipo_text}\n'.encode('cp850') + BoldOff
         raw_bytes += b'\n'
+        # Senha em tamanho MEGA (Quadruple)
         raw_bytes += QuadrupleSizeOn + senha.encode('cp850') + DoubleSizeOff + b'\n'
         raw_bytes += f'       {emoji}\n'.encode('cp850', 'ignore')
         raw_bytes += b'\n'
-        raw_bytes += b'--------------------------------\n'
-        raw_bytes += f'Data: {data_str}  Hora: {hora_str}\n'.encode('cp850')
-        raw_bytes += DoubleHeightOn + f'Tempo Est.: ~{espera_min} min\n'.encode('cp850') + DoubleSizeOff
-        raw_bytes += b'--------------------------------\n'
+        raw_bytes += b'==============================\n'
+        
+        # Metadata alinhada a esquerda
+        raw_bytes += ESC + b'a\x00' # Esquerda
+        raw_bytes += f'{data_str} - {hora_str}\n'.encode('cp850')
+        raw_bytes += BoldOn + f'Tempo de Espera: ~{espera_min} min\n'.encode('cp850') + BoldOff
+        raw_bytes += b'\n'
     
-    raw_bytes += b'\n'
-    raw_bytes += BoldOn + b'AGUARDE SER CHAMADO NO PAINEL\n' + BoldOff
+    # Rodapé Personalizado (Editor)
+    raw_bytes += Center
+    for rl in rodape_lines:
+        raw_bytes += f'{rl}\n'.encode('cp850', 'ignore')
     
     raw_bytes += b'\n' * 4 # Avanço
     raw_bytes += GS + b'V\x42\x00' # Corte (V 66 0)

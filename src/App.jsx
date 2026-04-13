@@ -1,29 +1,44 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter } from 'lucide-react'
+import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter, Lock } from 'lucide-react'
 import './App.css'
 
 const STORAGE_KEY = 'atende_org_data_v2'
-const PRINT_NODE_URL = 'http://localhost:5000'
 
 function App() {
+  const urlParams = new URLSearchParams(window.location.search)
+  const isPublic = urlParams.get('view') === 'public'
+
   const [data, setData] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
     const initial = {
       date: new Date().toLocaleDateString(),
       common: 1,
       priority: 1,
       waiting: [],
       history: [],
-      history: [],
       p_streak: 0,
       priorityMode: 'balanced', // 'balanced' or 'priority_only'
       activeCall: null
     }
-    
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      if (parsed.date !== initial.date) return initial
-      return { ...initial, ...parsed } // Mesclar para garantir campos novos
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Se a data mudou, resetamos o estado para o dia atual
+        if (parsed.date !== initial.date) {
+            console.log('App: Novo dia detectado, limpando estado antigo.')
+            return initial
+        }
+        // Mesclagem profunda simples para garantir campos novos
+        return {
+           ...initial,
+           ...parsed,
+           waiting: Array.isArray(parsed.waiting) ? parsed.waiting : [],
+           history: Array.isArray(parsed.history) ? parsed.history : []
+        }
+      }
+    } catch (err) {
+      console.error('App: Falha ao carregar estado inicial:', err)
     }
     return initial
   })
@@ -33,11 +48,30 @@ function App() {
   const [printerOnline, setPrinterOnline] = useState(false)
   const [printers, setPrinters] = useState([])
   const [selectedPrinter, setSelectedPrinter] = useState(() => localStorage.getItem('selected_printer'))
+  const [printNodeUrl, setPrintNodeUrl] = useState(() => localStorage.getItem('atende_print_node_url') || 'http://127.0.0.1:5000')
+  const [printerHeader, setPrinterHeader] = useState(() => localStorage.getItem('atende_printer_header') || 'LADES LABORATORIO')
+  const [printerFooter, setPrinterFooter] = useState(() => localStorage.getItem('atende_printer_footer') || 'Obrigado por escolher o\nLades Laboratorio.\nAguarde sua senha no painel.')
+  
+  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('atende_auth') === '124663')
+  const [passwordInput, setPasswordInput] = useState('')
+
   const [showSetup, setShowSetup] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const timerRef = useRef(null)
 
   // Sync to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('atende_print_node_url', printNodeUrl)
+  }, [printNodeUrl])
+
+  useEffect(() => {
+    localStorage.setItem('atende_printer_header', printerHeader)
+  }, [printerHeader])
+
+  useEffect(() => {
+    localStorage.setItem('atende_printer_footer', printerFooter)
+  }, [printerFooter])
+
   useEffect(() => {
     if (!isPublic) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -104,7 +138,7 @@ function App() {
 
   const checkPrinter = async () => {
     try {
-      const res = await fetch(`${PRINT_NODE_URL}/printers`)
+      const res = await fetch(`${printNodeUrl}/printers`)
       if (res.ok) {
         const data = await res.json()
         setPrinters(data.printers)
@@ -138,9 +172,6 @@ function App() {
     }
   }, [])
 
-  // Detectar visão
-  const urlParams = new URLSearchParams(window.location.search)
-  const isPublic = urlParams.get('view') === 'public'
 
   const emitTicket = async (tipo) => {
     const numero = tipo === 'C' ? data.common : data.priority
@@ -183,7 +214,7 @@ function App() {
     // Impressão
     if (printerOnline) {
       try {
-        await fetch(`${PRINT_NODE_URL}/print`, {
+        await fetch(`${printNodeUrl}/print`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -191,6 +222,8 @@ function App() {
             tipo, 
             lab: "ATENDE.ORG - RECEPÇÃO",
             printer_name: selectedPrinter,
+            cabecalho: printerHeader,
+            rodape: printerFooter,
             data: now.toLocaleDateString('pt-BR'),
             hora: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
             espera: waitMin > 0 ? waitMin : 5,
@@ -206,13 +239,15 @@ function App() {
   const testPrint = async () => {
     if (!printerOnline) return
     try {
-      await fetch(`${PRINT_NODE_URL}/print`, {
+      await fetch(`${printNodeUrl}/print`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           lab: "TESTE DE IMPRESSÃO",
           is_test: true,
-          printer_name: selectedPrinter 
+          printer_name: selectedPrinter,
+          cabecalho: printerHeader,
+          rodape: printerFooter
         })
       })
       alert("Comando enviado!")
@@ -352,6 +387,41 @@ function App() {
     )
   }
 
+  const handleLogin = (e) => {
+    e.preventDefault()
+    if (passwordInput === '124663') {
+      sessionStorage.setItem('atende_auth', '124663')
+      setIsAuthenticated(true)
+    } else {
+      alert("Senha incorreta!")
+      setPasswordInput('')
+    }
+  }
+
+  if (!isPublic && !isAuthenticated) {
+    return (
+      <div className="app-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#000' }}>
+         <div className="glass-card" style={{ width: '400px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
+            <Lock size={48} style={{ color: 'var(--neon-green)', margin: '0 auto 20px auto' }} />
+            <h2 style={{ color: '#fff', marginBottom: '20px' }}>ACESSO RESTRITO</h2>
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <input 
+                type="password" 
+                placeholder="Insira a senha de acesso..." 
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#111', color: '#fff', fontSize: '1.2rem', textAlign: 'center' }}
+                autoFocus
+              />
+              <button type="submit" className="neon-btn btn-emerald" style={{ padding: '15px', fontSize: '1rem' }}>
+                ENTRAR NO PAINEL
+              </button>
+            </form>
+         </div>
+      </div>
+    )
+  }
+
   return (
     <div className="app-container">
       <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -367,9 +437,9 @@ function App() {
           <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`} onClick={() => setShowSetup(true)} style={{ cursor: 'pointer' }}>
             {printerOnline ? '● IMPRESSORA ONLINE' : '○ IMPRESSORA OFFLINE'}
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 15px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <button onClick={toggleMode} style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 15px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s' }}>
             MODO: {data.priorityMode === 'balanced' ? '⚖️ INTERCALADO' : data.priorityMode === 'arrival_order' ? '⏱️ ORDEM DE CHEGADA' : '🔥 PRIORIDADE MÁXIMA'}
-          </div>
+          </button>
         </div>
       </header>
 
@@ -412,12 +482,9 @@ function App() {
             <div style={{ textAlign: 'center', padding: '40px', opacity: 0.3 }}>Aguardando próxima chamada...</div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-             <button className="neon-btn btn-emerald" style={{ width: '100%', flex: 2 }} onClick={callNext}>
+          <div style={{ display: 'flex', gap: '15px' }}>
+             <button className="neon-btn btn-emerald" style={{ width: '100%', flex: 1 }} onClick={callNext}>
                CHAMAR PRÓXIMO (Espaço) 🔊
-             </button>
-             <button className="neon-btn" style={{ background: 'rgba(255,255,255,0.05)', color: '#fff' }} onClick={toggleMode}>
-               {data.priorityMode === 'balanced' ? 'Ativar Prioridade' : 'Ativar Intercalado'}
              </button>
           </div>
         </div>
@@ -480,17 +547,46 @@ function App() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2 style={{ color: '#fff', marginBottom: '20px' }}>PAINEL DE SENHAS Print Node 🖨️</h2>
             <div className="setup-step" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px', marginBottom: '15px' }}>
-              <h3 style={{ color: 'var(--neon-green)', marginBottom: '10px' }}>🖨️ Selecionar Impressora</h3>
+              <h3 style={{ color: 'var(--neon-green)', marginBottom: '15px' }}>🖨️ Configurar Editor de Impressão</h3>
+              
+              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Endereço do Print Agent (.EXE)</label>
+              <input 
+                type="text" 
+                value={printNodeUrl} 
+                onChange={(e) => setPrintNodeUrl(e.target.value)}
+                placeholder="Ex: http://127.0.0.1:5000"
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#111', color: '#fff', border: '1px solid #444', marginBottom: '15px' }}
+              />
+
+              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Selecionar Impressora</label>
               <select 
                 value={selectedPrinter || ''} 
                 onChange={(e) => handleSelectPrinter(e.target.value)}
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#000', color: '#fff', border: '1px solid var(--neon-green)' }}
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#000', color: '#fff', border: '1px solid var(--neon-green)', marginBottom: '15px' }}
               >
                 <option value="">-- Padrão do Sistema --</option>
                 {printers.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
+
+              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Cabeçalho do Ticket</label>
+              <input 
+                type="text" 
+                value={printerHeader} 
+                onChange={(e) => setPrinterHeader(e.target.value)}
+                placeholder="Ex: LADES LABORATORIO"
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#111', color: '#fff', border: '1px solid #444', marginBottom: '15px' }}
+              />
+
+              <label style={{ display: 'block', color: '#aaa', fontSize: '0.8rem', marginBottom: '5px' }}>Mensagem de Rodapé</label>
+              <textarea 
+                value={printerFooter} 
+                onChange={(e) => setPrinterFooter(e.target.value)}
+                placeholder="Ex: Obrigado por escolher o laboratório..."
+                rows="3"
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#111', color: '#fff', border: '1px solid #444', marginBottom: '15px', resize: 'vertical' }}
+              />
               <button 
                 className="neon-btn btn-emerald" 
                 onClick={testPrint}
@@ -509,7 +605,22 @@ function App() {
                 </a>
               </div>
             </div>
-            <button className="neon-btn" onClick={() => setShowSetup(false)} style={{ marginTop: '20px', width: '100%', background: '#111', color: '#fff' }}>FECHAR</button>
+
+            <div className="setup-step" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px', marginTop: '15px', textAlign: 'center' }}>
+              <h3 style={{ color: 'var(--neon-green)', marginBottom: '15px' }}>📥 Central de Instalação (Windows)</h3>
+              <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '15px' }}>Baixe o Instalador Automático da Ponte de Comunicação ou o pacote de Drivers brutos USB.</p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '15px', textDecoration: 'none', fontWeight: 'bold' }}>
+                  📦 INSTALADOR PASSO A PASSO (.EXE)
+                </a>
+                <a href="/drivers_pos80.zip" download className="neon-btn" style={{ padding: '10px', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '0.8rem' }}>
+                  Baixar Pasta de Drivers ZIP (Zjiang)
+                </a>
+              </div>
+            </div>
+
+            <button className="neon-btn" onClick={() => setShowSetup(false)} style={{ marginTop: '20px', width: '100%', background: '#111', color: '#fff' }}>FECHAR PAINEL DE CONFIGURAÇÕES</button>
           </div>
         </div>
       )}

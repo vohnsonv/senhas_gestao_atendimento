@@ -179,7 +179,7 @@ class PrintAgentGUI:
         menu = pystray.Menu(
             pystray.MenuItem("Configurar", lambda: self.open_settings()),
             pystray.MenuItem("Imprimir Teste", lambda: self.test_print()),
-            pystray.Menu.Separator(),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem("Sair", self.quit_app)
         )
         

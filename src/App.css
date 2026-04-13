@@ -522,3 +522,43 @@ h1, h2, h3 {
   background: white;
   border-radius: 50%;
 }
+
+/* --- SIMULADOR DE TICKET --- */
+.ticket-preview {
+  margin: 0 auto;
+  width: 280px;
+  background: white;
+  color: black;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 0;
+  position: relative;
+  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05));
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.ticket-inner {
+  padding: 20px;
+  min-height: 200px;
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1.2;
+}
+
+.ticket-tear {
+  height: 12px;
+  width: 100%;
+  background: white;
+  position: relative;
+  background-image: 
+    linear-gradient(135deg, var(--bg-main) 25%, transparent 25%),
+    linear-gradient(225deg, var(--bg-main) 25%, transparent 25%);
+  background-position: 0 0;
+  background-size: 15px 15px;
+}
+
+/* Switches e Controles Extras */
+.switch-label input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}

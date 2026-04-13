@@ -65,6 +65,8 @@ function App() {
   const [printNodeUrl, setPrintNodeUrl] = useState(() => localStorage.getItem('atende_print_node_url') || 'http://127.0.0.1:5000')
   const [printerHeader, setPrinterHeader] = useState(() => localStorage.getItem('atende_printer_header') || 'LADES LABORATORIO')
   const [printerFooter, setPrinterFooter] = useState(() => localStorage.getItem('atende_printer_footer') || 'Obrigado por escolher o\nLades Laboratorio.\nAguarde sua senha no painel.')
+  const [economyMode, setEconomyMode] = useState(() => localStorage.getItem('atende_economy_mode') === 'true')
+  const [printTemplate, setPrintTemplate] = useState(() => localStorage.getItem('atende_print_template') || '{CABECALHO}\n\nSENHA {TIPO_TEXTO}\n{SENHA}\n\n{DATA} {HORA} | Espera: ~{ESPERA}min\n\n{RODAPE}')
   
   const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('atende_auth') === '124663')
   const [passwordInput, setPasswordInput] = useState('')
@@ -86,6 +88,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem('atende_printer_footer', printerFooter)
   }, [printerFooter])
+
+  useEffect(() => {
+    localStorage.setItem('atende_economy_mode', economyMode)
+  }, [economyMode])
+
+  useEffect(() => {
+    localStorage.setItem('atende_print_template', printTemplate)
+  }, [printTemplate])
 
   useEffect(() => {
     if (!isPublic) {
@@ -261,24 +271,45 @@ function App() {
 
     const waitMin = getWaitTime()
     const now = new Date()
+    const dataStr = now.toLocaleDateString('pt-BR')
+    const horaStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+    // Processador de Template para Blocos do Agente v1.3
+    const generatePrintBlocks = (inputSenha, inputTipo) => {
+      const tipoTxt = inputTipo === 'P' ? 'PREFERENCIAL' : 'COMUM'
+      const rawText = printTemplate
+        .replace('{CABECALHO}', printerHeader)
+        .replace('{RODAPE}', printerFooter)
+        .replace('{SENHA}', inputSenha)
+        .replace('{TIPO_TEXTO}', tipoTxt)
+        .replace('{DATA}', dataStr)
+        .replace('{HORA}', horaStr)
+        .replace('{ESPERA}', waitMin > 0 ? waitMin : 5)
+        .replace('{EMOJI}', randomEmoji)
+
+      return rawText.split('\n').map(line => {
+        const trimmed = line.trim()
+        if (trimmed === inputSenha) return { text: trimmed, size: 'QUAD', bold: true }
+        if (trimmed === printerHeader) return { text: trimmed, size: 'DOUBLE', bold: true }
+        if (trimmed.startsWith('SENHA')) return { text: trimmed, size: 'NORMAL', bold: true }
+        return { text: trimmed, size: 'NORMAL', bold: false }
+      })
+    }
     
     // Impressão
     if (printerOnline) {
       try {
+        const blocks = generatePrintBlocks(senha, tipo)
         await fetch(`${printNodeUrl}/print`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             senha, 
             tipo, 
-            lab: "ATENDE.ORG - RECEPÇÃO",
+            lab: "ATENDE.ORG",
             printer_name: selectedPrinter,
-            cabecalho: printerHeader,
-            rodape: printerFooter,
-            data: now.toLocaleDateString('pt-BR'),
-            hora: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            espera: waitMin > 0 ? waitMin : 5,
-            emoji: randomEmoji
+            blocks: economyMode ? blocks.filter(b => b.text !== '') : blocks,
+            economy: economyMode
           })
         })
       } catch (err) { console.error(err) }
@@ -290,15 +321,34 @@ function App() {
   const testPrint = async () => {
     if (!printerOnline) return
     try {
+      const now = new Date()
+      // Simulador rápido para teste
+      const tipoTxt = 'TESTE'
+      const rawText = printTemplate
+        .replace('{CABECALHO}', 'TESTE DE PAPEL')
+        .replace('{RODAPE}', 'GUILHOTINA OK?')
+        .replace('{SENHA}', 'T999')
+        .replace('{TIPO_TEXTO}', tipoTxt)
+        .replace('{DATA}', now.toLocaleDateString())
+        .replace('{HORA}', '00:00')
+        .replace('{ESPERA}', '0')
+        .replace('{EMOJI}', '✅')
+
+      const blocks = rawText.split('\n').map(line => ({
+        text: line.trim(),
+        size: line.includes('T999') ? 'QUAD' : 'NORMAL',
+        bold: line.includes('T999') || line.includes('TESTE'),
+        align: 'CENTER'
+      }))
+
       await fetch(`${printNodeUrl}/print`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          lab: "TESTE DE IMPRESSÃO",
-          is_test: true,
+          lab: "TESTE",
+          blocks: economyMode ? blocks.filter(b => b.text !== '') : blocks,
           printer_name: selectedPrinter,
-          cabecalho: printerHeader,
-          rodape: printerFooter
+          is_test: true 
         })
       })
     } catch (err) { console.error("Erro ao imprimir teste:", err) }
@@ -685,30 +735,89 @@ function App() {
                 type="text" 
                 value={printerHeader} 
                 onChange={(e) => setPrinterHeader(e.target.value)}
-                placeholder="Ex: LADES LABORATORIO"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', fontSize: '1rem' }}
+                placeholder="Ex: MAVITEC LAB"
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '15px', fontSize: '1rem' }}
               />
 
-              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Mensagem de Rodapé (Agradecimento / Insta)</label>
-              <textarea 
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Rodapé do Ticket</label>
+              <input 
+                type="text" 
                 value={printerFooter} 
                 onChange={(e) => setPrinterFooter(e.target.value)}
-                placeholder="Ex: Obrigado por escolher o laboratório..."
-                rows="4"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', resize: 'vertical', fontSize: '1rem', fontFamily: 'inherit' }}
+                placeholder="Ex: mavitex.com.br"
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '15px', fontSize: '1rem' }}
               />
+
+              <div style={{ padding: '20px', background: 'var(--bg-main)', borderRadius: '15px', border: '1px solid var(--glass-border)', marginTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                  <h4 style={{ color: 'var(--color-primary)', margin: 0 }}>📝 EDITOR DE LAYOUT</h4>
+                  <label className="switch-label" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={economyMode} onChange={e => setEconomyMode(e.target.checked)} />
+                    MODO ECONOMIA
+                  </label>
+                </div>
+                
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px' }}>Use: {'{CABECALHO}'}, {'{SENHA}'}, {'{DATA}'}, {'{HORA}'}, {'{ESPERA}'}, {'{RODAPE}'}</p>
+                <textarea 
+                  value={printTemplate}
+                  onChange={(e) => setPrintTemplate(e.target.value)}
+                  rows="8"
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', fontFamily: 'monospace', fontSize: '0.9rem', resize: 'vertical' }}
+                />
+              </div>
+
               <button 
                 className="neon-btn btn-lime" 
                 onClick={testPrint}
-                style={{ width: '100%', marginTop: '10px', fontSize: '1rem', padding: '15px' }}
+                style={{ width: '100%', marginTop: '20px', fontSize: '1rem', padding: '15px' }}
               >
                 TESTAR IMPRESSÃO & CORTE
               </button>
             </div>
 
-            {/* Centro: Controle de Áudio */}
-            <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-              <h3 style={{ color: 'var(--color-secondary)', marginBottom: '25px', fontSize: '1.2rem' }}>🔊 Gerenciamento de Áudio</h3>
+            {/* Centro: Prévia do Ticket */}
+            <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <h3 style={{ color: 'var(--color-secondary)', marginBottom: '25px', fontSize: '1.2rem', alignSelf: 'flex-start' }}>📄 PRÉVIA DO TICKET</h3>
+              
+              <div className="ticket-preview">
+                <div className="ticket-inner">
+                  {printTemplate.split('\n').map((line, i) => {
+                    const text = line
+                      .replace('{CABECALHO}', printerHeader)
+                      .replace('{SENHA}', 'C001')
+                      .replace('{TIPO_TEXTO}', 'COMUM')
+                      .replace('{DATA}', new Date().toLocaleDateString())
+                      .replace('{HORA}', '10:00')
+                      .replace('{ESPERA}', '5')
+                      .replace('{RODAPE}', printerFooter)
+                    
+                    if (!text && economyMode) return null
+                    
+                    const isSenha = line.includes('{SENHA}')
+                    const isHeader = line.includes('{CABECALHO}')
+                    
+                    return (
+                      <p key={i} style={{ 
+                        margin: '2px 0', 
+                        fontSize: isSenha ? '2rem' : isHeader ? '1.2rem' : '0.9rem',
+                        fontWeight: (isSenha || isHeader) ? 'bold' : 'normal',
+                        textAlign: 'center'
+                      }}>
+                        {text || '\u00A0'}
+                      </p>
+                    )
+                  })}
+                </div>
+                <div className="ticket-tear"></div>
+              </div>
+
+              <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(0, 243, 255, 0.05)', borderRadius: '12px', border: '1px dashed var(--color-primary)', display: 'flex', gap: '10px' }}>
+                <Info size={16} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                  <b>Dica de Economia:</b> Remova linhas em branco no editor e ative o Modo Economia para reduzir o tamanho físico do papel.
+                </p>
+              </div>
+            </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div 

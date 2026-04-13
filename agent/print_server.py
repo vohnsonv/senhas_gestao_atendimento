@@ -179,6 +179,7 @@ def print_ticket():
     # Extração de meta do painel do novo UX
     cabecalho = data.get('cabecalho', 'LADES LABORATORIO')
     rodape = data.get('rodape', 'Obrigado por escolher o Lades Laboratorio.\nAguarde sua senha no painel.')
+    blocks = data.get('blocks') # Nova funcionalidade v1.3: Blocos customizados
 
     # Sanitização contra Thermal Bugging (Remover acentos)
     cabecalho_limpo = remove_accents(cabecalho)
@@ -190,13 +191,16 @@ def print_ticket():
     
     Initialize = ESC + b'@'
     Center = ESC + b'a\x01'
+    Left = ESC + b'a\x00'
+    Right = ESC + b'a\x02'
     BoldOn = ESC + b'E\x01'
     BoldOff = ESC + b'E\x00'
-    # MEGA FONTE
-    QuadrupleSizeOn = GS + b'!\x33'
-    DoubleSizeOn = GS + b'!\x11'
-    DoubleHeightOn = GS + b'!\x01'
-    DoubleSizeOff = GS + b'!\x00'
+    
+    # FONTES
+    NormalSize = GS + b'!\x00'
+    DoubleHeight = GS + b'!\x01'
+    DoubleSize = GS + b'!\x11'
+    QuadrupleSize = GS + b'!\x33'
     
     config = load_config()
     margin_top = int(config.get("margin_top", 0))
@@ -205,35 +209,65 @@ def print_ticket():
     # Alinhamento Central Padrão
     raw_bytes = Initialize + (b'\n' * margin_top) + Center
     
-    # Cabeçalho Personalizado (Editor)
-    raw_bytes += Center + BoldOn + DoubleHeightOn + f'{cabecalho_limpo}\n'.encode('cp850', 'ignore') + DoubleSizeOff + BoldOff
-    raw_bytes += b'------------------------------\n'
-    
-    if is_test:
-        raw_bytes += QuadrupleSizeOn + b'TESTE\n' + DoubleSizeOff
-        raw_bytes += b'GUILHOTINA OK?\n'
-        raw_bytes += b'==============================\n'
+    if blocks:
+        # MODO EDITOR DINÂMICO (v1.3)
+        for block in blocks:
+            text = remove_accents(block.get('text', ''))
+            size = block.get('size', 'NORMAL') # NORMAL, DOUBLE, QUAD
+            bold = block.get('bold', False)
+            align = block.get('align', 'CENTER')
+            
+            # Aplicar Alinhamento
+            if align == 'LEFT': raw_bytes += Left
+            elif align == 'RIGHT': raw_bytes += Right
+            else: raw_bytes += Center
+            
+            # Aplicar Estilo
+            if bold: raw_bytes += BoldOn
+            else: raw_bytes += BoldOff
+            
+            if size == 'DOUBLE': raw_bytes += DoubleSize
+            elif size == 'QUAD': raw_bytes += QuadrupleSize
+            else: raw_bytes += NormalSize
+            
+            raw_bytes += f'{text}\n'.encode('cp850', 'ignore')
+            
+        # Reset para o corte
+        raw_bytes += NormalSize + BoldOff + Center
     else:
-        tipo_text = "PREFERENCIAL" if tipo == 'P' else "COMUM"
-        # Título principal da senha
-        raw_bytes += BoldOn + f'SENHA {tipo_text}\n'.encode('cp850') + BoldOff
-        # Senha em tamanho MEGA (Quadruple)
-        raw_bytes += QuadrupleSizeOn + senha.encode('cp850') + DoubleSizeOff + b'\n'
-        raw_bytes += f'   {emoji}\n'.encode('cp850', 'ignore')
+        # MODO LEGADO (Fallback)
+        # Cabeçalho Personalizado (Editor)
+        raw_bytes += Center + BoldOn + DoubleHeight + f'{cabecalho_limpo}\n'.encode('cp850', 'ignore') + NormalSize + BoldOff
         raw_bytes += b'------------------------------\n'
         
-        # Metadata alinhada a esquerda
-        raw_bytes += ESC + b'a\x00' # Esquerda
-        raw_bytes += f'{data_str} {hora_str} | Espera: ~{espera_min}m\n'.encode('cp850')
+        if is_test:
+            raw_bytes += QuadrupleSize + b'TESTE\n' + NormalSize
+            raw_bytes += b'GUILHOTINA OK?\n'
+            raw_bytes += b'==============================\n'
+        else:
+            tipo_text = "PREFERENCIAL" if tipo == 'P' else "COMUM"
+            # Título principal da senha
+            raw_bytes += BoldOn + f'SENHA {tipo_text}\n'.encode('cp850') + BoldOff
+            # Senha em tamanho MEGA (Quadruple)
+            raw_bytes += QuadrupleSize + senha.encode('cp850') + NormalSize + b'\n'
+            raw_bytes += f'   {emoji}\n'.encode('cp850', 'ignore')
+            raw_bytes += b'------------------------------\n'
+            
+            # Metadata alinhada a esquerda
+            raw_bytes += Left
+            raw_bytes += f'{data_str} {hora_str} | Espera: ~{espera_min}m\n'.encode('cp850')
+        
+        # Rodapé Personalizado (Editor)
+        raw_bytes += Center
+        for rl in rodape_lines:
+            raw_bytes += f'{rl}\n'.encode('cp850', 'ignore')
     
-    # Rodapé Personalizado (Editor)
-    raw_bytes += Center
-    for rl in rodape_lines:
-        raw_bytes += f'{rl}\n'.encode('cp850', 'ignore')
-    
-    raw_bytes += b'\n' * margin_bottom # Avanço configurável para a Guilhotina
+    # Otimização de Corte: Se margin_bottom for 0, usamos o corte direto sem avanço extra
+    if margin_bottom > 0:
+        raw_bytes += b'\n' * margin_bottom 
+        
     raw_bytes += GS + b'V\x42\x00' # Corte (V 66 0)
-    raw_bytes += ESC + b'm'         # Corte (Bematech)
+    raw_bytes += ESC + b'i'        # Corte alternativo (i)
     
     try:
         send_to_printer(raw_bytes, printer_name)

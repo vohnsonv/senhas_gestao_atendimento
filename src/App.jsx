@@ -177,7 +177,18 @@ function App() {
     const handleStorage = (e) => {
       if (e.key === STORAGE_KEY && e.newValue) {
         const parsed = JSON.parse(e.newValue)
-        setData(parsed)
+        setData(prev => {
+          // Dispara som caso seja a visão Pública (TV) e tenha havido uma Nova Chamada.
+          if (isPublic && parsed.activeCall && (!prev.activeCall || parsed.activeCall.id !== prev.activeCall.id)) {
+            try {
+              // Som de "Airport Chime" / Chamada no painel principal
+              const tvChime = new Audio('https://assets.mixkit.co/active_storage/sfx/2800/2800-preview.mp3')
+              tvChime.volume = 1.0
+              tvChime.play().catch(err => console.log('Interaja com a tela uma vez para habilitar o áudio automático'))
+            } catch(err) {}
+          }
+          return parsed
+        })
       }
     }
     window.addEventListener('storage', handleStorage)

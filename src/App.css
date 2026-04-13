@@ -51,6 +51,18 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes flashPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+  50% { transform: scale(0.98); box-shadow: 0 0 30px 10px rgba(0, 255, 136, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+
+@keyframes blinkIndicator {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
 h1, h2 {
   font-weight: 800;
   letter-spacing: -1px;

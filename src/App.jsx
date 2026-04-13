@@ -1,8 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter, Lock } from 'lucide-react'
+import { Ticket, UserCheck, Clock, History, Settings, Play, Pause, ListFilter, Lock, Accessibility, CheckCircle2 } from 'lucide-react'
 import './App.css'
 
 const STORAGE_KEY = 'atende_org_data_v2'
+
+// Componente para exibir tempo de espera relativo
+const RelativeTime = ({ timestamp }) => {
+  const [mins, setMins] = useState(() => Math.floor((Date.now() - timestamp) / 60000))
+  useEffect(() => {
+    const int = setInterval(() => {
+      setMins(Math.floor((Date.now() - timestamp) / 60000))
+    }, 60000)
+    return () => clearInterval(int)
+  }, [timestamp])
+  return <span>esperando há {mins === 0 ? 'poucos seg' : `${mins} min`}</span>
+}
 
 function App() {
   const urlParams = new URLSearchParams(window.location.search)
@@ -57,6 +69,7 @@ function App() {
 
   const [showSetup, setShowSetup] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [isSpacePressed, setIsSpacePressed] = useState(false)
   const timerRef = useRef(null)
 
   // Sync to LocalStorage
@@ -96,7 +109,9 @@ function App() {
     const handleKeys = (e) => {
       if (e.code === 'Space') {
          e.preventDefault()
+         setIsSpacePressed(true)
          callNext()
+         setTimeout(() => setIsSpacePressed(false), 200)
       }
     }
     window.addEventListener('keydown', handleKeys)
@@ -260,6 +275,13 @@ function App() {
   }
 
   const callNext = () => {
+    // Sound Feedback Local (Feedback Suave Atendente)
+    try {
+      const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
+      clickSound.volume = 0.4
+      clickSound.play()
+    } catch(e) {}
+
     if (data.waiting.length === 0) {
       if (data.activeCall) {
          const finishedItem = {
@@ -273,8 +295,6 @@ function App() {
            activeCall: null
          }))
          setTimerSeconds(0)
-      } else {
-         alert("Fila vazia")
       }
       return
     }
@@ -434,7 +454,7 @@ function App() {
           <button className="neon-btn" onClick={() => setShowHistory(true)} style={{ padding: '8px 15px', fontSize: '0.7rem' }}>
              <History size={14} /> HISTÓRICO
           </button>
-          <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`} onClick={() => setShowSetup(true)} style={{ cursor: 'pointer' }}>
+          <div className={`printer-status ${printerOnline ? 'online' : 'offline'}`} onClick={() => setShowSetup(true)} style={{ cursor: 'pointer', animation: printerOnline ? 'blinkIndicator 2s infinite' : 'none', color: printerOnline ? '#00ff88' : '' }}>
             {printerOnline ? '● IMPRESSORA ONLINE' : '○ IMPRESSORA OFFLINE'}
           </div>
           <button onClick={toggleMode} style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 15px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s' }}>
@@ -446,14 +466,14 @@ function App() {
       <main className="terminal-section">
         <div className="glass-card" style={{ marginBottom: '30px' }}>
           <h2>EMISSÃO DE TICKETS</h2>
-          <div className="btn-container">
-            <button className="neon-btn btn-emerald" onClick={() => emitTicket('C')}>
-              <UserCheck size={32} />
+          <div className="btn-container" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+            <button className="neon-btn btn-emerald" onClick={() => emitTicket('C')} style={{ padding: '25px', fontSize: '1.4rem' }}>
+              <UserCheck size={40} />
               <span>COMUM</span>
             </button>
-            <button className="neon-btn btn-lime" onClick={() => emitTicket('P')}>
-              <Ticket size={32} />
-              <span>PREFERENCIAL</span>
+            <button className="neon-btn btn-lime" onClick={() => emitTicket('P')} style={{ padding: '30px', fontSize: '1.6rem', border: '3px solid var(--accent-lime)', background: 'rgba(163, 230, 53, 0.15)' }}>
+              <Accessibility size={48} />
+              <span style={{ marginLeft: '15px' }}>PREFERENCIAL</span>
             </button>
           </div>
           {lastTicket && (
@@ -483,7 +503,27 @@ function App() {
           )}
 
           <div style={{ display: 'flex', gap: '15px' }}>
-             <button className="neon-btn btn-emerald" style={{ width: '100%', flex: 1 }} onClick={callNext}>
+             <button 
+                onClick={() => {
+                  setIsSpacePressed(true)
+                  callNext()
+                  setTimeout(() => setIsSpacePressed(false), 200)
+                }}
+                style={{ 
+                  width: '100%', 
+                  flex: 1, 
+                  backgroundColor: '#00ff88', 
+                  color: '#000', 
+                  fontWeight: 'bold', 
+                  fontSize: '1.2rem', 
+                  padding: '24px', 
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  animation: isSpacePressed ? 'flashPulse 0.2s ease-out' : 'none',
+                  transform: isSpacePressed ? 'scale(0.98)' : 'scale(1)',
+                  transition: 'transform 0.1s'
+                }}>
                CHAMAR PRÓXIMO (Espaço) 🔊
              </button>
           </div>
@@ -495,14 +535,20 @@ function App() {
            <h2>FILA DE ESPERA ({data.waiting.length})</h2>
            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '30px' }}>
               {data.waiting.length > 0 ? data.waiting.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                    <span style={{ fontWeight: '800', fontSize: '1.2rem', color: item.tipo === 'P' ? 'var(--accent-lime)' : 'var(--neon-green)' }}>{item.senha}</span>
-                    <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>{item.emitTime}</span>
+                    {item.tipo === 'P' ? <Accessibility size={24} style={{ color: 'var(--accent-lime)'}} /> : <UserCheck size={24} style={{ color: 'rgba(255,255,255,0.2)'}} />}
+                    <span style={{ fontWeight: '800', fontSize: '1.4rem', color: item.tipo === 'P' ? 'var(--accent-lime)' : 'var(--neon-green)' }}>{item.senha}</span>
+                    <span style={{ opacity: 0.5, fontSize: '0.9rem', marginLeft: '10px' }}><RelativeTime timestamp={item.timestamp} /></span>
                   </div>
-                  <button onClick={() => cancelTicket(item.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>✕</button>
+                  <button onClick={() => cancelTicket(item.id)} style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '45px', height: '45px', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }}>✕</button>
                 </div>
-              )) : <p style={{ opacity: 0.2, textAlign: 'center', marginTop: '50px' }}>Vazio</p>}
+              )) : (
+                <div style={{ textAlign: 'center', opacity: 0.4, marginTop: '80px' }}>
+                  <CheckCircle2 size={64} style={{ margin: '0 auto', marginBottom: '20px', color: 'var(--neon-green)' }} />
+                  <p style={{ fontSize: '1.2rem' }}>Tudo limpo!<br/>Nenhum paciente aguardando.</p>
+                </div>
+              )}
            </div>
 
         </div>

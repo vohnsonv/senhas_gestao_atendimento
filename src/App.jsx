@@ -148,7 +148,6 @@ function App() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
-    alert("Copiado!")
   }
 
   const checkPrinter = async () => {
@@ -276,8 +275,7 @@ function App() {
           rodape: printerFooter
         })
       })
-      alert("Comando enviado!")
-    } catch (err) { alert("Erro ao imprimir teste") }
+    } catch (err) { console.error("Erro ao imprimir teste:", err) }
   }
 
   const handleSelectPrinter = (name) => {
@@ -403,12 +401,10 @@ function App() {
   }
 
   const cancelTicket = (id) => {
-    if (window.confirm("Deseja cancelar esta senha?")) {
-      setData(prev => ({
-        ...prev,
-        waiting: prev.waiting.filter(item => item.id !== id)
-      }))
-    }
+    setData(prev => ({
+      ...prev,
+      waiting: prev.waiting.filter(item => item.id !== id)
+    }))
   }
 
   if (isPublic) {
@@ -457,7 +453,7 @@ function App() {
       sessionStorage.setItem('atende_auth', '124663')
       setIsAuthenticated(true)
     } else {
-      alert("Senha incorreta!")
+      console.log("Senha incorreta!")
       setPasswordInput('')
     }
   }

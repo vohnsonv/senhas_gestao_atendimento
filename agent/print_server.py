@@ -53,6 +53,16 @@ def get_default_printer():
             return win32print.GetDefaultPrinter()
         except:
             return None
+    else:
+        # No Linux
+        import subprocess
+        try:
+            output = subprocess.check_output(['lpstat', '-d']).decode()
+            # Ex: "destino padrão do sistema: POS80"
+            if ':' in output:
+                return output.split(':')[1].strip()
+        except:
+            pass
     return "Default"
 
 def send_to_printer(raw_data, printer_name=None):
@@ -79,16 +89,30 @@ def send_to_printer(raw_data, printer_name=None):
         # No Linux
         try:
             # Tentar via /dev/usb/lp0 primeiro (acesso direto)
-            with open('/dev/usb/lp0', 'wb') as f:
-                f.write(raw_data)
+            if os.path.exists('/dev/usb/lp0'):
+                with open('/dev/usb/lp0', 'wb') as f:
+                    f.write(raw_data)
+                    return
         except Exception as e:
-            # Fallback: Usar o comando 'lp'
-            import subprocess
-            cmd = ['lp', '-o', 'raw']
-            if printer_name:
-                cmd.extend(['-d', printer_name])
-            process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-            process.communicate(input=raw_data)
+            print(f"Aviso: Falha ao acessar /dev/usb/lp0: {e}")
+
+        # Fallback: Usar o comando 'lp'
+        import subprocess
+        # Se printer_name for "Default" ou vazio, tenta pegar a real do sistema
+        if not printer_name or printer_name == "Default":
+            printer_name = get_default_printer()
+            
+        print(f"Enviando para impressora Linux: {printer_name}")
+        cmd = ['lp', '-o', 'raw']
+        if printer_name and printer_name != "Default":
+            cmd.extend(['-d', printer_name])
+        
+        process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate(input=raw_data)
+        
+        if process.returncode != 0:
+            error_msg = stderr.decode() if stderr else "Erro desconhecido no comando lp"
+            raise Exception(f"Erro no CUPS (lp): {error_msg}")
 
 @app.route('/status', methods=['GET'])
 def status():
@@ -189,8 +213,11 @@ def print_ticket():
         print(f"ERRO CRITICO NA IMPRESSAO: {error_trace}")
         return jsonify({"success": False, "error": str(e), "trace": error_trace}), 500
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+def run_server(port=5000):
     print(f"Print Node rodando em http://localhost:{port}")
     app.run(host='0.0.0.0', port=port)
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    run_server(port)
 

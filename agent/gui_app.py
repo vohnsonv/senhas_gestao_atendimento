@@ -2,7 +2,7 @@ import threading
 import pystray
 from PIL import Image, ImageDraw
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 import json
 import os
 import sys
@@ -57,7 +57,8 @@ class PrintNodeApp:
         def save():
             self.config["printer_name"] = combo.get()
             save_config(self.config)
-            messagebox.showinfo("Sucesso", "Configuração salva! Reinicie o app se necessário.")
+            # Sem popup de sucesso conforme solicitado
+            print("Configuração salva com sucesso.")
             root.destroy()
 
         tk.Button(root, text="SALVAR", command=save, bg="#adff2f", fg="black", padx=20).pack(pady=20)

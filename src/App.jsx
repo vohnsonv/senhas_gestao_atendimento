@@ -703,106 +703,70 @@ function App() {
              <h2 style={{ margin: 0 }}>CONFIGURAÇÕES DO SISTEMA</h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1.5fr) minmax(300px, 1fr)', gap: '30px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 320px', gap: '30px', alignItems: 'start' }}>
             {/* Esquerda: Configurações de Impressão */}
             <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-              <h3 style={{ color: 'var(--color-primary)', marginBottom: '25px', fontSize: '1.2rem' }}>🖨️ Editor de Impressão e Comunicação</h3>
+              <h3 style={{ color: 'var(--color-primary)', marginBottom: '25px', fontSize: '1.2rem' }}>🖨️ Editor de Impressão</h3>
               
-              <label style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>📡 Endereço do Servidor de Impressão</label>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px' }}>Use <b>http://localhost:5000</b> se a impressora estiver neste PC, ou o <b>IP do Windows</b> se estiver em outro (ex: http://192.168.1.50:5000).</p>
+              <label style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>📡 Endereço do Servidor</label>
               <input 
                 type="text" 
                 value={printNodeUrl} 
                 onChange={(e) => setPrintNodeUrl(e.target.value)}
                 placeholder="Ex: http://127.0.0.1:5000"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', fontSize: '1rem' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '15px', fontSize: '1rem' }}
               />
 
-              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Selecionar Impressora Instalada</label>
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Impressora POS-80</label>
               <select 
                 value={selectedPrinter || ''} 
                 onChange={(e) => handleSelectPrinter(e.target.value)}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px', fontSize: '1rem', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '15px', fontSize: '1rem' }}
               >
-                <option value="">-- Padrão do Sistema --</option>
-                {printers.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
+                <option value="">-- Automática --</option>
+                {printers.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
 
-              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Cabeçalho do Ticket</label>
-              <input 
-                type="text" 
-                value={printerHeader} 
-                onChange={(e) => setPrinterHeader(e.target.value)}
-                placeholder="Ex: MAVITEC LAB"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '15px', fontSize: '1rem' }}
-              />
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Cabeçalho / Rodapé</label>
+              <input type="text" value={printerHeader} onChange={e => setPrinterHeader(e.target.value)} placeholder="Cabeçalho" style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '10px' }} />
+              <input type="text" value={printerFooter} onChange={e => setPrinterFooter(e.target.value)} placeholder="Rodapé" style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '20px' }} />
 
-              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Rodapé do Ticket</label>
-              <input 
-                type="text" 
-                value={printerFooter} 
-                onChange={(e) => setPrinterFooter(e.target.value)}
-                placeholder="Ex: mavitex.com.br"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', marginBottom: '15px', fontSize: '1rem' }}
-              />
-
-              <div style={{ padding: '20px', background: 'var(--bg-main)', borderRadius: '15px', border: '1px solid var(--glass-border)', marginTop: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                  <h4 style={{ color: 'var(--color-primary)', margin: 0 }}>📝 EDITOR DE LAYOUT</h4>
-                  <label className="switch-label" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={economyMode} onChange={e => setEconomyMode(e.target.checked)} />
-                    MODO ECONOMIA
+              <div style={{ padding: '20px', background: 'var(--bg-main)', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <h4 style={{ color: 'var(--color-primary)', margin: 0, fontSize: '0.9rem' }}>📝 EDITOR DE LAYOUT</h4>
+                  <label className="switch-label" style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <input type="checkbox" checked={economyMode} onChange={e => setEconomyMode(e.target.checked)} /> ECONOMIA
                   </label>
                 </div>
-                
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px' }}>Use: {'{CABECALHO}'}, {'{SENHA}'}, {'{DATA}'}, {'{HORA}'}, {'{ESPERA}'}, {'{RODAPE}'}</p>
                 <textarea 
                   value={printTemplate}
                   onChange={(e) => setPrintTemplate(e.target.value)}
-                  rows="8"
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', fontFamily: 'monospace', fontSize: '0.9rem', resize: 'vertical' }}
+                  rows="6"
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', fontFamily: 'monospace', fontSize: '0.85rem' }}
                 />
               </div>
 
-              <button 
-                className="neon-btn btn-lime" 
-                onClick={testPrint}
-                style={{ width: '100%', marginTop: '20px', fontSize: '1rem', padding: '15px' }}
-              >
-                TESTAR IMPRESSÃO & CORTE
-              </button>
+              <button className="neon-btn btn-lime" onClick={testPrint} style={{ width: '100%', marginTop: '20px', padding: '12px' }}>TESTAR IMPRESSÃO</button>
             </div>
 
-            {/* Centro: Prévia do Ticket */}
-            <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <h3 style={{ color: 'var(--color-secondary)', marginBottom: '25px', fontSize: '1.2rem', alignSelf: 'flex-start' }}>📄 PRÉVIA DO TICKET</h3>
+            {/* Centro: Simulador */}
+            <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
+              <h3 style={{ color: 'var(--color-secondary)', marginBottom: '20px', fontSize: '1.2rem', textAlign: 'left' }}>📄 SIMULADOR</h3>
               
               <div className="ticket-preview">
                 <div className="ticket-inner">
                   {printTemplate.split('\n').map((line, i) => {
                     const text = line
                       .replace('{CABECALHO}', printerHeader)
-                      .replace('{SENHA}', 'C001')
-                      .replace('{TIPO_TEXTO}', 'COMUM')
-                      .replace('{DATA}', new Date().toLocaleDateString())
-                      .replace('{HORA}', '10:00')
-                      .replace('{ESPERA}', '5')
-                      .replace('{RODAPE}', printerFooter)
+                      .replace('{SENHA}', 'C001').replace('{TIPO_TEXTO}', 'COMUM')
+                      .replace('{DATA}', '13/04/2026').replace('{HORA}', '10:00')
+                      .replace('{ESPERA}', '5').replace('{RODAPE}', printerFooter)
                     
                     if (!text && economyMode) return null
-                    
                     const isSenha = line.includes('{SENHA}')
                     const isHeader = line.includes('{CABECALHO}')
-                    
                     return (
-                      <p key={i} style={{ 
-                        margin: '2px 0', 
-                        fontSize: isSenha ? '2rem' : isHeader ? '1.2rem' : '0.9rem',
-                        fontWeight: (isSenha || isHeader) ? 'bold' : 'normal',
-                        textAlign: 'center'
-                      }}>
+                      <p key={i} style={{ margin: '2px 0', fontSize: isSenha ? '1.8rem' : isHeader ? '1.1rem' : '0.8rem', fontWeight: (isSenha || isHeader) ? 'bold' : 'normal' }}>
                         {text || '\u00A0'}
                       </p>
                     )
@@ -810,85 +774,28 @@ function App() {
                 </div>
                 <div className="ticket-tear"></div>
               </div>
-
-              <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(0, 243, 255, 0.05)', borderRadius: '12px', border: '1px dashed var(--color-primary)', display: 'flex', gap: '10px' }}>
-                <Info size={16} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                  <b>Dica de Economia:</b> Remova linhas em branco no editor e ative o Modo Economia para reduzir o tamanho físico do papel.
-                </p>
-              </div>
-            </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <div 
-                  className="audio-card"
-                  onClick={() => toggleAudio('tv')}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: 'var(--bg-surface)', borderRadius: '12px', cursor: 'pointer', border: data.audioSettings?.tv ? '1px solid var(--color-secondary)' : '1px solid var(--glass-border)', transition: 'all 0.2s' }}
-                >
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: data.audioSettings?.tv ? 'rgba(0, 243, 255, 0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      <Volume2 size={20} style={{ color: data.audioSettings?.tv ? 'var(--color-secondary)' : 'var(--text-muted)' }} />
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>Sons na TV (Visão Pública)</p>
-                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ativa bipe e voz de chamada na TV.</p>
-                    </div>
-                  </div>
-                  <div className={`mode-indicator ${data.audioSettings?.tv ? 'active' : ''}`} style={{ width: '20px', height: '20px' }}></div>
-                </div>
-
-                <div 
-                  className="audio-card"
-                  onClick={() => toggleAudio('panel')}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: 'var(--bg-surface)', borderRadius: '12px', cursor: 'pointer', border: data.audioSettings?.panel ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)', transition: 'all 0.2s' }}
-                >
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: data.audioSettings?.panel ? 'rgba(0, 255, 149, 0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      <Accessibility size={20} style={{ color: data.audioSettings?.panel ? 'var(--color-primary)' : 'var(--text-muted)' }} />
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>Sons no Painel (Atendente)</p>
-                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ativa bipe de confirmação no painel local.</p>
-                    </div>
-                  </div>
-                  <div className={`mode-indicator ${data.audioSettings?.panel ? 'active' : ''}`} style={{ width: '20px', height: '20px' }}></div>
-                </div>
-              </div>
-
-              <div style={{ marginTop: '25px', padding: '15px', background: 'rgba(0, 243, 255, 0.05)', borderRadius: '12px', border: '1px dashed var(--color-primary)', display: 'flex', gap: '10px' }}>
-                <Info size={16} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                  Nota: A TV deve ter foco (clique uma vez na tela da TV) para que o navegador permita a reprodução automática de áudio.
-                </p>
-              </div>
+              <p style={{ marginTop: '15px', fontSize: '0.7rem', color: 'var(--text-muted)' }}><b>Tip:</b> Ative o Modo Economia para tickets menores.</p>
             </div>
 
-            {/* Direita: Downloads e Dependências */}
+            {/* Direita: Áudio e Downloads */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '10px' }}>🌐 Dica de Redes & Segurança</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>Para imprimir corretamente em Windows/Linux, habilite o <b>"Conteúdo Inseguro"</b> no cadeado do navegador para este site (HTTPS para HTTP).</p>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <a href="https://bit.ly/40LAD3S" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none', fontSize: '0.8rem', flex: 1, textAlign: 'center', justifyContent: 'center' }}>
-                    COMO HABILITAR?
-                  </a>
+              <div className="setup-step" style={{ padding: '25px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '15px', fontSize: '1.1rem' }}>🔊 Áudio</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {['tv', 'panel'].map(key => (
+                    <div key={key} onClick={() => toggleAudio(key)} className="audio-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-surface)', borderRadius: '10px', cursor: 'pointer', border: data.audioSettings?.[key] ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{key === 'tv' ? 'Sons na TV' : 'Sons no Painel'}</span>
+                      <div className={`mode-indicator ${data.audioSettings?.[key] ? 'active' : ''}`} style={{ width: '16px', height: '16px' }}></div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
-                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '15px', fontSize: '1.2rem' }}>📥 Downloads & Drivers</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>Baixe as pontes de comunicação e os drivers da impressora POS-80.</p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>
-                    🪟 BAIXAR INSTALADOR WINDOWS (.EXE)
-                  </a>
-                  <a href="/drivers_pos80.zip" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '0.9rem', justifyContent: 'center' }}>
-                    🖨️ DRIVERS TÉRMICA POS-80
-                  </a>
-                  <a href="/print_server.py" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '0.9rem', justifyContent: 'center' }}>
-                    🐧 BRIDGE SCRIPT LINUX (BACKUP .PY)
-                  </a>
+              <div className="setup-step" style={{ padding: '25px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '15px', fontSize: '1.1rem' }}>📥 Downloads</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '12px', fontSize: '0.8rem', textDecoration: 'none' }}>INSTALADOR (.EXE)</a>
+                  <a href="/drivers_pos80.zip" download className="tab-btn" style={{ padding: '10px', fontSize: '0.8rem', textDecoration: 'none', justifyContent: 'center' }}>DRIVERS POS-80</a>
                 </div>
               </div>
             </div>

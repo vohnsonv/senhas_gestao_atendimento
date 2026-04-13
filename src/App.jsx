@@ -155,21 +155,36 @@ function App() {
     try {
       const res = await fetch(`${printNodeUrl}/printers`)
       if (res.ok) {
-        const data = await res.json()
-        setPrinters(data.printers)
+        const list = await res.json()
+        const all_printers = list.printers || []
+        setPrinters(all_printers)
         setPrinterOnline(true)
-        if (!selectedPrinter && data.default) {
-          setSelectedPrinter(data.default)
+
+        // Inteligência adicional: Se POS80 existir e não houver seleção, escolhe ela
+        if (!selectedPrinter) {
+          if (all_printers.includes("POS80")) {
+             setSelectedPrinter("POS80")
+             localStorage.setItem('selected_printer', "POS80")
+          } else if (list.default) {
+             setSelectedPrinter(list.default)
+             localStorage.setItem('selected_printer', list.default)
+          }
         }
       } else {
         setPrinterOnline(false)
       }
-    } catch {
+    } catch (err) {
       setPrinterOnline(false)
+      if (window.location.protocol === 'https:' && printNodeUrl.startsWith('http:')) {
+        console.error("ERRO DE SEGURANÇA (Mixed Content): O site está em HTTPS mas tentando acessar o Agente em HTTP. Habilite 'Conteúdo Inseguro' nas configurações do navegador para imprimir.")
+      } else {
+        console.error("Erro ao conectar no Agente de Impressão:", err)
+      }
     }
   }
 
   useEffect(() => {
+    console.log(`MAVITEC SENHAS v${packageJson.version} inicializado.`)
     checkPrinter()
     const interval = setInterval(checkPrinter, 10000)
     
@@ -485,7 +500,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <header style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--header-mb)' }}>
           <h1 className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <Ticket style={{ color: 'var(--color-primary)' }} size={42} strokeWidth={2.5} />
             PAINEL DE SENHAS
@@ -516,7 +531,7 @@ function App() {
       {activeTab === 'atendimento' ? (
         <>
           <main className="terminal-section">
-        <div className="glass-card" style={{ marginBottom: '30px' }}>
+        <div className="glass-card" style={{ marginBottom: 'var(--grid-gap)' }}>
           <h2>EMISSÃO DE TICKETS</h2>
           <div className="btn-container" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
             <button className="neon-btn btn-emerald" onClick={() => emitTicket('C')} style={{ padding: '25px', fontSize: '1.4rem' }}>
@@ -528,12 +543,6 @@ function App() {
               <span style={{ marginLeft: '15px' }}>PREFERENCIAL</span>
             </button>
           </div>
-          {lastTicket && (
-            <div style={{ position: 'absolute', top: '20px', right: '40px', textAlign: 'center' }}>
-               <p style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>ÚLTIMO EMITIDO</p>
-               <p style={{ color: 'var(--color-primary)', fontWeight: '900', fontSize: '1.5rem' }}>{lastTicket}</p>
-            </div>
-          )}
         </div>
 
         <div className="glass-card" style={{ border: '2px solid rgba(27, 153, 139, 0.15)' }}>
@@ -546,9 +555,9 @@ function App() {
           
           {data.activeCall ? (
             <div style={{ textAlign: 'center', padding: '10px' }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: 600 }}>EM ATENDIMENTO AGORA</p>
-              <h3 style={{ fontSize: '8rem', lineHeight: '1', margin: '15px 0', color: 'var(--color-primary)' }}>{data.activeCall.senha}</h3>
-              <p style={{ color: 'var(--text-muted)', marginTop: '5px', fontSize: '1rem' }}>Iniciado às {data.activeCall.startTime}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>EM ATENDIMENTO AGORA</p>
+              <h3 style={{ fontSize: 'clamp(5rem, 18vh, 9rem)', lineHeight: '1', margin: '15px 0', color: 'var(--color-primary)' }}>{data.activeCall.senha}</h3>
+              <p style={{ color: 'var(--text-muted)', marginTop: '5px', fontSize: '0.9rem' }}>Iniciado às {data.activeCall.startTime}</p>
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Aguardando próxima chamada...</div>
@@ -582,9 +591,20 @@ function App() {
         </div>
       </main>
 
-      <aside className="queue-section">
-        <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-           <h2>FILA DE ESPERA ({data.waiting.length})</h2>
+      <aside className="queue-section" style={{ height: 'calc(100vh - 120px)' }}>
+        <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+           {lastTicket && (
+              <div className="sticky-last-ticket">
+                <div className="label">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Ticket size={14} /> ÚLTIMO EMITIDO
+                  </div>
+                  <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>REFERÊNCIA DE IMPRESSÃO</span>
+                </div>
+                <div className="value">{lastTicket}</div>
+              </div>
+           )}
+           <h2 style={{ padding: lastTicket ? '0' : '0 0 20px 0', marginBottom: '10px' }}>FILA DE ESPERA ({data.waiting.length})</h2>
            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '30px' }}>
               {data.waiting.length > 0 ? data.waiting.map(item => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--glass-border)' }}>
@@ -621,7 +641,8 @@ function App() {
             <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
               <h3 style={{ color: 'var(--color-primary)', marginBottom: '25px', fontSize: '1.2rem' }}>🖨️ Editor de Impressão e Comunicação</h3>
               
-              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 'bold' }}>Endereço Local Print Agent (.EXE)</label>
+              <label style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>📡 Endereço do Servidor de Impressão</label>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px' }}>Use <b>http://localhost:5000</b> se a impressora estiver neste PC, ou o <b>IP do Windows</b> se estiver em outro (ex: http://192.168.1.50:5000).</p>
               <input 
                 type="text" 
                 value={printNodeUrl} 
@@ -671,11 +692,11 @@ function App() {
             {/* Direita: Downloads e Dependências */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="setup-step" style={{ padding: '30px', background: 'var(--bg-main)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '10px' }}>📥 Backend Dependente</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>Certifique-se de que a ponte de comunicação (print_server.py ou Agente.exe) está rodando localmente (normalmente porta 5000), caso contrário as impressões falharão.</p>
+                <h3 style={{ color: 'var(--color-secondary)', marginBottom: '10px' }}>🌐 Dica de Redes & Segurança</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>Para imprimir corretamente em Windows/Linux, habilite o <b>"Conteúdo Inseguro"</b> no cadeado do navegador para este site (HTTPS -> HTTP).</p>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <a href="https://www.python.org/downloads/" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none', fontSize: '0.8rem', flex: 1, textAlign: 'center', justifyContent: 'center' }}>
-                    BAIXAR PYTHON
+                  <a href="https://bit.ly/40LAD3S" target="_blank" rel="noopener noreferrer" className="tab-btn" style={{ textDecoration: 'none', fontSize: '0.8rem', flex: 1, textAlign: 'center', justifyContent: 'center' }}>
+                    COMO HABILITAR?
                   </a>
                 </div>
               </div>
@@ -685,14 +706,14 @@ function App() {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>Baixe as pontes de comunicação e os drivers da impressora POS-80.</p>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <a href="/drivers_pos80.zip" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', justifyContent: 'center' }}>
-                    🖨️ DRIVERS POS-80
-                  </a>
                   <a href="/Instalador_LabSync_Agent.exe" download className="neon-btn btn-emerald" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>
-                    🪟 BRIDGE INSTALLER (.EXE)
+                    🪟 BAIXAR INSTALADOR WINDOWS (.EXE)
                   </a>
-                  <a href="/print_server.py" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '1rem', justifyContent: 'center' }}>
-                    🐧 BRIDGE SCRIPT LINUX (.PY)
+                  <a href="/drivers_pos80.zip" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '0.9rem', justifyContent: 'center' }}>
+                    🖨️ DRIVERS TÉRMICA POS-80
+                  </a>
+                  <a href="/print_server.py" download className="tab-btn" style={{ padding: '15px', textDecoration: 'none', fontSize: '0.9rem', justifyContent: 'center' }}>
+                    🐧 BRIDGE SCRIPT LINUX (BACKUP .PY)
                   </a>
                 </div>
               </div>

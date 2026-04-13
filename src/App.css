@@ -9,6 +9,12 @@
   --shadow-light: 0 10px 40px rgba(27, 153, 139, 0.08);
   --shadow-strong: 0 20px 60px rgba(42, 75, 124, 0.15);
   --font-inter: 'Inter', sans-serif;
+  
+  /* Sistema de Escala Responsiva */
+  --card-pad: 32px;
+  --grid-gap: 30px;
+  --header-mb: 30px;
+  --title-fs: 2.5rem;
 }
 
 * {
@@ -35,9 +41,9 @@ body {
   margin: 0 auto;
   padding: 20px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.1fr 0.9fr; /* Melhor distribuição Atendimento vs Fila */
   grid-template-rows: auto 1fr auto;
-  gap: 30px;
+  gap: var(--grid-gap);
   height: 100vh;
   animation: fadeIn 0.8s ease-out;
 }
@@ -69,13 +75,13 @@ h1, h2, h3 {
   background: var(--bg-surface);
   border: 1px solid var(--glass-border);
   border-radius: 28px;
-  padding: 32px;
+  padding: var(--card-pad);
   box-shadow: var(--shadow-light);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .hero-title {
-  font-size: 2.5rem;
+  font-size: var(--title-fs);
   margin-bottom: 0px;
   color: var(--color-secondary);
   font-weight: 900;
@@ -241,8 +247,26 @@ h1, h2, h3 {
 .printer-status.online { background: rgba(27, 153, 139, 0.1); color: var(--color-primary); border-color: rgba(27, 153, 139, 0.2); }
 .printer-status.offline { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
 
+@media (max-width: 1536px) {
+  :root {
+    --card-pad: 20px;
+    --grid-gap: 15px;
+    --header-mb: 15px;
+    --title-fs: 2rem;
+  }
+  
+  .app-container {
+    padding: 10px;
+    grid-template-columns: 1.2fr 0.8fr; /* Dá ainda mais espaço para o terminal em 14" */
+  }
+
+  .terminal-section .glass-card {
+    margin-bottom: 15px !important;
+  }
+}
+
 @media (max-width: 1100px) {
-  .app-container { grid-template-columns: 1fr; }
+  .app-container { grid-template-columns: 1fr; overflow-y: auto; height: auto; }
 }
 
 /* --- PAINEL PÚBLICO (TV) --- */
@@ -335,3 +359,32 @@ h1, h2, h3 {
   letter-spacing: 1px;
 }
 
+.sticky-last-ticket {
+  position: sticky;
+  top: -32px; /* Ajuste para o padding do glass-card */
+  z-index: 10;
+  background: var(--bg-surface);
+  margin: -32px -32px 20px -32px;
+  padding: 20px 32px;
+  border-bottom: 2px solid var(--color-primary);
+  border-radius: 28px 28px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(27, 153, 139, 0.05);
+}
+
+.sticky-last-ticket .label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sticky-last-ticket .value {
+  font-size: 2.2rem;
+  font-weight: 950;
+  color: var(--color-primary);
+  line-height: 1;
+}

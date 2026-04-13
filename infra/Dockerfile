@@ -1,6 +1,15 @@
+# Stage 1: Build the React application
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve the application with Nginx
 FROM nginx:alpine
-COPY dist /usr/share/nginx/html
-# Copia arquivo de configuracao padrão do nginx para suporte a React Router (se necessário, embora não usemos history mode agressivo, é boa prática)
+COPY --from=build /app/dist /usr/share/nginx/html
+# Copia arquivo de configuracao padrão do nginx para suporte a React Router (se necessário)
 RUN echo 'server { \
     listen       80; \
     server_name  localhost; \

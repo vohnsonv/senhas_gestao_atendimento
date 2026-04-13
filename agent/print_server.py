@@ -41,9 +41,13 @@ def list_printers():
         try:
             output = subprocess.check_output(['lpstat', '-p']).decode()
             for line in output.split('\n'):
-                if line.startswith('printer'):
-                    printers.append(line.split(' ')[1])
-        except:
+                # Aceita 'printer' ou 'impressora'
+                if line.startswith('printer') or line.startswith('impressora'):
+                    parts = line.split(' ')
+                    if len(parts) > 1:
+                        printers.append(parts[1])
+        except Exception as e:
+            print(f"Erro ao listar impressoras Linux: {e}")
             printers.append("Default (Linux/CUPS)")
     return printers
 
@@ -57,10 +61,19 @@ def get_default_printer():
         # No Linux
         import subprocess
         try:
+            # Primeiro listar todas para ver se a térmica POS80 existe
+            all_p = list_printers()
+            if "POS80" in all_p:
+                return "POS80"
+                
             output = subprocess.check_output(['lpstat', '-d']).decode()
-            # Ex: "destino padrão do sistema: POS80"
+            # Ex: "destino padrão do sistema: POS80" ou "system default destination: POS80"
             if ':' in output:
                 return output.split(':')[1].strip()
+            # Fallback se não houver dois pontos (raro no lpstat -d)
+            parts = output.split(' ')
+            if len(parts) > 1:
+                return parts[-1].strip()
         except:
             pass
     return "Default"

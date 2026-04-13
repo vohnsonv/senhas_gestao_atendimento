@@ -12,3 +12,4 @@ agent/build/
 agent/dist/
 agent/__pycache__/
 agent/venv/
+*.tar.gz
